@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RRR × FFF — Final Project</title>
+
+<link rel="stylesheet" href="vendor/fonts/gaegu.css">
+<link rel="stylesheet" href="vendor/fonts/jua.css">
+<link rel="stylesheet" href="vendor/fonts/nanumpen.css">
+<script src="settings.js"></script>
+<script>
+/* settings.js 값을 CSS 변수로 적용 */
+(function(){
+  var C = window.설정 || {}, F = C.글꼴 || {}, K = C.색상 || {};
+  var FACE  = { gaegu:"'Gaegu'", jua:"'Jua'", nanumpen:"'Nanum Pen Script'" };
+  var BOOST = { gaegu:1.20, jua:1.06, nanumpen:1.34 };
+  var BODY  = "'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','맑은 고딕',sans-serif";
+  function stack(k){ var f = FACE[F[k]]; return (f ? f + "," : "") + BODY; }
+  function boost(k){ return BOOST[F[k]] || 1; }
+  var r = document.documentElement.style;
+  r.setProperty('--font-title', stack('제목'));
+  r.setProperty('--font-body',  stack('본문'));
+  r.setProperty('--font-label', stack('라벨'));
+  r.setProperty('--title-scale', (F.제목크기 || 1) * boost('제목'));
+  r.setProperty('--body-scale',  (F.본문크기 || 1) * boost('본문'));
+  r.setProperty('--label-scale', boost('라벨'));
+  if (K.배경)   r.setProperty('--paper', K.배경);
+  if (K.카드)   r.setProperty('--card',  K.카드);
+  if (K.메인)   r.setProperty('--main',  K.메인);
+  if (K.포인트) r.setProperty('--red',   K.포인트);
+  if (K.글자)   r.setProperty('--ink',   K.글자);
+})();
+</script>
+
+<style>
+:root{
+  --paper:#FFFFFF;
+  --card:#F7F9F8;
+  --ink:#1D2A27;
+  --main:#488E7D;
+  --red:#D93025;
+
+  --dim:#5A6B65;
+  --faint:#8D9C97;
+  --soft:#F1F4F3;
+
+  --main-700:#2C5A4E;
+  --main-200:#BFDDD4;
+  --main-100:#E4EFEB;
+  --main-050:#EFF5F3;
+  --red-200:#F3C6C2;
+  --red-100:#FBEAE8;
+
+  --line:rgba(29,42,39,.11);
+  --line2:rgba(29,42,39,.08);
+  --shadow:0 10px 28px rgba(30,55,48,.07);
+  --shadow-lg:0 20px 52px rgba(30,55,48,.12);
+
+  --font-title:-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+  --font-body:-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+  --font-label:-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+  --title-scale:1; --body-scale:1; --label-scale:1;
+  --mono:'JetBrains Mono',Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased; overflow:hidden; letter-spacing:-.008em;
+}
+
+/* ===== deck ===== */
+#deck{position:fixed; inset:0; overflow-y:auto; overflow-x:hidden; scroll-snap-type:y mandatory; scroll-behavior:smooth; z-index:1}
+#deck::-webkit-scrollbar{width:0}
+section{
+  position:relative; min-height:100vh; scroll-snap-align:start; scroll-snap-stop:always;
+  display:flex; flex-direction:column; justify-content:center;
+  padding:72px clamp(28px,5vw,90px) 76px;
+}
+.wrap{width:100%; max-width:1420px; margin:0 auto}
+
+/* ===== chrome ===== */
+#topbar{
+  position:fixed; top:0; left:0; right:0; height:58px; z-index:800;
+  display:flex; align-items:center; gap:18px; padding:0 clamp(18px,3vw,34px);
+  background:linear-gradient(180deg,var(--paper) 42%,transparent); pointer-events:none;
+}
+#topbar .mark{
+  width:52px; height:24px; flex:none; background-color:var(--main);
+  -webkit-mask:url(assets/logo-rrr.png) no-repeat center/contain;
+          mask:url(assets/logo-rrr.png) no-repeat center/contain;
+}
+#secname{font-size:13px; color:var(--faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+#counter{font-family:var(--mono); font-size:12px; color:var(--faint); white-space:nowrap}
+#counter b{color:var(--main); font-weight:700}
+#progress{position:fixed; top:0; left:0; height:3px; z-index:820; background:linear-gradient(90deg,var(--main) 60%,var(--red)); width:0; transition:width .35s cubic-bezier(.4,0,.2,1)}
+#dots{position:fixed; right:14px; top:50%; transform:translateY(-50%); z-index:800; display:flex; flex-direction:column; gap:9px}
+#dots button{width:7px; height:7px; border-radius:50%; border:0; cursor:pointer; padding:0; background:rgba(29,42,39,.18); transition:.25s; position:relative}
+#dots button:hover{background:var(--main); transform:scale(1.35)}
+#dots button.on{background:var(--red); box-shadow:0 0 0 3px rgba(217,48,37,.16)}
+#dots button::after{
+  content:attr(data-t); position:absolute; right:16px; top:50%; transform:translateY(-50%);
+  font-size:11px; white-space:nowrap; color:#fff; background:var(--ink);
+  padding:5px 10px; border-radius:6px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.18s;
+}
+#dots button:hover::after{opacity:1}
+#hint{
+  position:fixed; left:clamp(18px,3vw,34px); bottom:16px; z-index:800;
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--faint);
+  display:flex; gap:14px; align-items:center; pointer-events:none;
+}
+kbd{font-family:var(--mono); font-size:10px; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:2px 5px; color:var(--dim); background:var(--card)}
+
+/* ===== type ===== */
+.eyebrow{
+  font-family:var(--mono);
+  font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.14em; text-transform:uppercase;
+  color:var(--red); margin-bottom:18px; display:flex; align-items:center; gap:12px; font-weight:700;
+}
+.eyebrow::before{content:''; width:26px; height:2px; background:var(--red); flex:none}
+h2{
+  font-family:var(--font-title); font-weight:800; color:var(--ink);
+  font-size:calc(clamp(30px,3.7vw,50px) * var(--title-scale) * var(--fs-k, 1));
+  line-height:1.12; letter-spacing:-.03em; margin-bottom:13px;
+}
+h2 em{font-style:normal; color:var(--red)}
+h2 .g{color:var(--main)}
+.lede{font-size:calc(clamp(18px,1.45vw,22px) * var(--body-scale) * var(--fs-k, 1)); line-height:1.66; color:var(--dim); max-width:82ch; margin-bottom:26px}
+.lede strong{color:var(--main-700); font-weight:700}
+h3{font-family:var(--font-title); font-weight:700; font-size:calc(22px * var(--title-scale) * var(--fs-k, 1)); letter-spacing:-.03em; margin-bottom:9px; color:var(--ink); line-height:1.28}
+p{line-height:1.7}
+.small{font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); line-height:1.62; color:var(--dim)}
+.small b{color:var(--ink)}
+.tiny{font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.55}
+
+/* ===== cards ===== */
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px 22px; position:relative; overflow:hidden; box-shadow:var(--shadow)}
+.card.accent{background:var(--red-100); border-color:var(--red-200)}
+.card.accent h3{color:var(--red)}
+.card.cy,.card.vi{background:var(--main-050); border-color:var(--main-200)}
+.card.cy h3,.card.vi h3{color:var(--main-700)}
+.grid{display:grid; gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:1080px){.g4{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:1fr}}
+
+.tag{display:inline-block; font-family:var(--mono); font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.03em; padding:4px 12px; border-radius:999px; border:1px solid var(--line); color:var(--dim); background:var(--card); text-transform:uppercase; font-weight:700}
+.tag.p{border-color:var(--red-200); color:var(--red); background:var(--red-100)}
+.tag.c,.tag.v{border-color:var(--main-200); color:var(--main-700); background:var(--main-100)}
+.tag.a{border-color:var(--line); color:var(--ink); background:var(--soft)}
+.tags{display:flex; flex-wrap:wrap; gap:7px}
+.num{font-family:var(--font-title); font-size:calc(clamp(32px,3.5vw,50px) * var(--title-scale) * var(--fs-k, 1)); font-weight:700; line-height:1; color:var(--main)}
+.num.r{color:var(--red)}
+
+/* ===== reveal ===== */
+.rv{opacity:0; transform:translateY(20px); transition:opacity .6s cubic-bezier(.2,.7,.3,1), transform .6s cubic-bezier(.2,.7,.3,1)}
+section.live .rv{opacity:1; transform:none}
+section.live .rv:nth-child(1){transition-delay:.03s}
+section.live .rv:nth-child(2){transition-delay:.09s}
+section.live .rv:nth-child(3){transition-delay:.15s}
+section.live .rv:nth-child(4){transition-delay:.21s}
+section.live .rv:nth-child(5){transition-delay:.27s}
+section.live .rv:nth-child(6){transition-delay:.33s}
+.stagger>*{opacity:0; transform:translateY(18px); transition:opacity .54s cubic-bezier(.2,.7,.3,1), transform .54s cubic-bezier(.2,.7,.3,1)}
+section.live .stagger>*{opacity:1; transform:none}
+section.live .stagger>*:nth-child(1){transition-delay:.10s}
+section.live .stagger>*:nth-child(2){transition-delay:.16s}
+section.live .stagger>*:nth-child(3){transition-delay:.22s}
+section.live .stagger>*:nth-child(4){transition-delay:.28s}
+section.live .stagger>*:nth-child(5){transition-delay:.34s}
+section.live .stagger>*:nth-child(6){transition-delay:.40s}
+section.live .stagger>*:nth-child(7){transition-delay:.46s}
+section.live .stagger>*:nth-child(8){transition-delay:.52s}
+
+/* ===== HERO ===== */
+#hero{padding:0; overflow:hidden; background:var(--paper)}
+#bubbles{opacity:0; transition:opacity .9s ease}
+body.scene-ready #bubbles{opacity:1}
+#bubbles{position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1; cursor:crosshair; touch-action:none}
+#heroscrim{
+  position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:
+    linear-gradient(to top,   #fff 0, rgba(255,255,255,.94) 17vh, rgba(255,255,255,0) 31vh),
+    linear-gradient(to bottom,#fff 0, rgba(255,255,255,.88) 9vh,  rgba(255,255,255,0) 20vh);
+}
+.hero-top{position:absolute; top:13vh; left:0; right:0; z-index:3; text-align:center; pointer-events:none; padding:0 24px}
+.hero-copy{position:absolute; bottom:15vh; left:0; right:0; z-index:3; text-align:center; pointer-events:none; padding:0 24px; display:flex; flex-direction:column; align-items:center}
+.hero-kicker{font-family:var(--mono); font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.2em; color:var(--red); margin-bottom:26px; text-transform:uppercase; font-weight:700}
+.hero-line{margin-top:0; font-size:calc(clamp(14px,1.45vw,19px) * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.72; max-width:58ch}
+.hero-line b{color:var(--main-700); font-weight:700}
+.hero-meta{
+  position:absolute; bottom:42px; left:0; right:0; z-index:3;
+  display:flex; justify-content:center; gap:clamp(18px,4vw,56px);
+  font-family:var(--mono); font-size:17px; letter-spacing:.06em; color:var(--dim);
+  flex-wrap:wrap; padding:0 24px; text-align:center;
+}
+.hero-meta b{color:var(--main); font-weight:700}
+.pophint{margin-top:22px; font-family:var(--mono); font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.06em; color:var(--faint); animation:breathe 2.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.42}50%{opacity:1}}
+
+/* ===== phone ===== */
+.phone{
+  position:relative; border-radius:22px; overflow:hidden; background:#0d1512;
+  border:1px solid var(--line); box-shadow:var(--shadow-lg);
+  aspect-ratio:9/19.5;
+  height:clamp(150px, 36vh, 400px);   /* 높이를 먼저 정하고 너비를 따라오게 */
+  width:auto; margin:0 auto;
+}
+section.vid{padding-top:66px; padding-bottom:66px}
+section.vid .lede{margin-bottom:20px; max-width:88ch}
+section.vid h2{margin-bottom:10px}
+section.vid .card{padding:16px 18px}
+section.vid .hr{margin:14px 0}
+section.vid .phcap{margin-top:8px}
+#deck section .wrap{transform-origin:top center}
+section[data-key="art"]{padding-top:62px; padding-bottom:62px}
+section[data-key="ugc"]{padding-top:62px; padding-bottom:62px}
+section[data-key="ugc"] h2{margin-bottom:8px}
+section[data-key="ugc"] .lede{margin-bottom:14px}
+section[data-key="ugc"] .card{padding:16px 18px}
+
+/* 10번 시스템·조작 — 흐름도가 화면을 넘지 않게 */
+section[data-key="feature"]{padding-top:60px; padding-bottom:60px}
+section[data-key="feature"] h2{margin-bottom:8px}
+section[data-key="feature"] .lede{margin-bottom:14px}
+section[data-key="feature"] .card{padding:18px 20px}
+section[data-key="feature"] .flowsvg{
+  max-height:calc(100vh - 430px); width:auto; display:block; margin:0 auto;
+}
+section[data-key="art"] h2{margin-bottom:8px}
+section[data-key="art"] .lede{margin-bottom:12px}
+@media(max-height:820px){
+  .phone{height:clamp(140px, 33vh, 340px)}
+  section.vid{padding-top:58px; padding-bottom:58px}
+  section.vid .lede{margin-bottom:14px}
+}
+.phone video{width:100%; height:100%; object-fit:cover; display:block; background:#0d1512}
+.phone .ph-poster{position:absolute; inset:0; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:opacity .4s}
+.phone .ph-poster::before{content:''; position:absolute; inset:0; background:rgba(10,26,22,.30)}
+.phone .ph-poster.gone{opacity:0; pointer-events:none}
+.phone .ph-poster.previewing{background-image:none !important}
+.phone .ph-poster.previewing::before{background:rgba(10,26,22,.12)}
+.phone .ph-poster.previewing .playbtn{opacity:.5}
+.playbtn{position:relative; width:50px; height:50px; border-radius:50%; border:2px solid #fff; background:rgba(255,255,255,.16); display:grid; place-items:center; transition:.25s}
+.phone .ph-poster:hover .playbtn{transform:scale(1.12); background:var(--red); border-color:var(--red); opacity:1}
+.playbtn::after{content:''; width:0;height:0; margin-left:3px; border-left:13px solid #fff; border-top:9px solid transparent; border-bottom:9px solid transparent}
+.charcard{
+  position:relative; border-radius:20px; overflow:hidden; background:var(--soft);
+  border:1px solid var(--line); box-shadow:var(--shadow);
+  height:clamp(200px, 52vh, 620px); width:auto; aspect-ratio:496/880; margin:0 auto;
+}
+.charcard img{width:100%; height:100%; object-fit:cover; display:block}
+
+.tonegrid{
+  display:grid; gap:14px;
+  grid-template-columns:repeat(3, 1fr);
+  grid-auto-rows:clamp(160px, calc((100vh - 360px) / 2), 470px);
+}
+.tone{margin:0; position:relative; border-radius:16px; overflow:hidden;
+  border:1px solid var(--line); box-shadow:var(--shadow); background:var(--soft)}
+.tone img{width:100%; height:100%; object-fit:cover; display:block}
+.tone figcaption{
+  position:absolute; left:0; right:0; bottom:0; padding:22px 14px 10px;
+  font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:#fff; font-weight:700;
+  letter-spacing:-.01em;
+  background:linear-gradient(to top, rgba(10,22,19,.86), rgba(10,22,19,0));
+}
+@media(max-width:900px){ .tonegrid{grid-template-columns:repeat(2,1fr)} }
+
+.shotgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start}
+.shotgrid .phone, .shotgrid .charcard{height:clamp(200px, calc(100vh - 330px), 780px)}
+.ugc-split{display:grid; grid-template-columns:2.05fr 1fr; gap:clamp(16px,2vw,32px); align-items:start}
+.ugc-side{display:flex; flex-direction:column; gap:14px}
+@media(max-width:1000px){ .ugc-split{grid-template-columns:1fr} }
+@media(max-width:900px){ .shotgrid{grid-template-columns:1fr} }
+
+.ingame-split{display:grid; grid-template-columns:0.9fr 1.1fr; gap:clamp(20px,3vw,48px); align-items:center}
+.ingame-copy .lede{margin-bottom:0}
+.ingame-film{display:flex; flex-direction:column; align-items:center}
+.filmbox{
+  position:relative; width:100%; height:clamp(240px, 66vh, 780px);
+  border-radius:20px; overflow:hidden; background:#0d1512;
+  border:1px solid var(--line); box-shadow:var(--shadow-lg);
+}
+.filmbox video{width:100%; height:100%; object-fit:contain; display:block; background:#0d1512}
+.filmbox .ph-poster{background-size:contain; background-repeat:no-repeat}
+@media(max-width:900px){ .ingame-split{grid-template-columns:1fr} }
+
+.phcap{margin-top:10px; text-align:center; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.4}
+.phcap b{display:block; color:var(--ink); font-weight:700; font-size:calc(18.5px * var(--body-scale) * var(--fs-k, 1)); margin-bottom:1px; font-family:var(--font-title)}
+
+/* ===== tabs ===== */
+.tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+.tab{font-family:var(--font-title); font-size:calc(18px * var(--title-scale) * var(--fs-k, 1) * 1); letter-spacing:.02em; padding:9px 20px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--dim); cursor:pointer; transition:.22s; font-weight:700}
+.tab:hover{color:var(--main-700); border-color:var(--main-200)}
+.tab.on{background:var(--main); color:#fff; border-color:var(--main); box-shadow:0 6px 16px rgba(72,142,125,.26)}
+.pane{display:none; animation:fadeup .42s cubic-bezier(.2,.7,.3,1)}
+.pane.on{display:block}
+@keyframes fadeup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ===== steps ===== */
+.steps{display:flex; flex-direction:column}
+.step{display:grid; grid-template-columns:70px 1fr 1.25fr; gap:22px; align-items:start; padding:16px 10px; border-top:1px solid var(--line2); transition:.25s; border-radius:8px}
+.step:last-child{border-bottom:1px solid var(--line2)}
+.step:hover{background:var(--main-050)}
+.step .si{font-family:var(--font-title); font-size:calc(19px * var(--title-scale) * var(--fs-k, 1) * .95); color:var(--red); font-weight:700}
+.step .sh{font-family:var(--font-title); font-size:calc(18px * var(--title-scale) * var(--fs-k, 1) * .85); font-weight:700; color:var(--ink)}
+.step .sd{font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.55}
+@media(max-width:900px){.step{grid-template-columns:56px 1fr}.step .sd{grid-column:2}}
+
+/* ===== table ===== */
+.cmp{width:100%; border-collapse:collapse; font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); background:var(--card); border-radius:12px; overflow:hidden; box-shadow:var(--shadow)}
+.cmp th,.cmp td{padding:13px 16px; text-align:left; vertical-align:top; border-bottom:1px solid var(--line2)}
+.cmp thead th{font-family:var(--font-title); font-size:calc(17px * var(--title-scale) * var(--fs-k, 1) * 1); letter-spacing:.01em; color:#fff; font-weight:700; background:var(--main); border-bottom:0}
+.cmp thead th:last-child{background:var(--main-700)}
+.cmp td:first-child{color:var(--ink); font-weight:700; width:18%; background:var(--soft)}
+.cmp td.was{color:var(--faint)}
+.cmp td.now{color:var(--dim)}
+.cmp td.now b{color:var(--red); font-weight:700}
+.cmp tbody tr:hover td{background:var(--main-050)}
+
+/* ===== demo ===== */
+.demo{border-radius:16px; overflow:hidden; border:1px solid var(--line); background:var(--card); position:relative; aspect-ratio:16/10; box-shadow:var(--shadow-lg)}
+.demo iframe{width:100%; height:100%; border:0; display:block}
+.demo .cover{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; text-align:center; padding:30px;
+  background:radial-gradient(70% 70% at 50% 30%, var(--main-100), transparent 72%), linear-gradient(165deg,var(--card),var(--soft));
+}
+.demo .cover h4{font-family:var(--font-title); font-size:calc(23px * var(--title-scale) * var(--fs-k, 1) * .9); font-weight:700; color:var(--ink)}
+.demo .cover p{font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); max-width:40ch}
+.btn{font-family:var(--font-title); font-size:calc(17px * var(--title-scale) * var(--fs-k, 1) * 1); cursor:pointer; padding:9px 22px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink); transition:.24s; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:8px}
+.btn:hover{border-color:var(--main); color:var(--main-700); transform:translateY(-1px); box-shadow:var(--shadow)}
+.btn.pri{background:var(--red); border-color:var(--red); color:#fff}
+.btn.pri:hover{background:#B3241B; border-color:#B3241B; color:#fff}
+.btn.sec{background:var(--main); border-color:var(--main); color:#fff}
+.btn.sec:hover{background:var(--main-700); border-color:var(--main-700); color:#fff}
+.btnrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+
+/* ===== misc ===== */
+.kv{display:flex; flex-direction:column; gap:5px}
+.kv .k{font-family:var(--mono); font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.03em; color:var(--red); text-transform:uppercase; font-weight:700}
+.kv .v{font-size:calc(19px * var(--body-scale) * var(--fs-k, 1)); color:var(--ink); line-height:1.45}
+ul.dash{list-style:none; display:flex; flex-direction:column; gap:9px}
+ul.dash li{position:relative; padding-left:20px; font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.56}
+ul.dash li::before{content:''; position:absolute; left:0; top:10px; width:8px; height:2px; background:var(--red); border-radius:2px}
+ul.dash li b{color:var(--ink); font-weight:700}
+.hr{height:1px; background:var(--line2); margin:22px 0}
+.flowsvg{width:100%; height:auto; overflow:visible}
+.chipgrid{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); padding:6px 12px; border-radius:6px; border:1px solid var(--line2); background:var(--soft); color:var(--dim); transition:.2s}
+.chip:hover{border-color:var(--main); color:var(--main-700); background:var(--main-050)}
+
+#end{align-items:center; text-align:center}
+#endlogo{
+  width:min(560px, 62vw); height:min(300px, 34vh); display:block; margin:0 auto;
+}
+.endmark{width:min(300px,34vh); aspect-ratio:1024/1296; background-color:var(--main); -webkit-mask:url(assets/logo-lockup.png) no-repeat center/contain; mask:url(assets/logo-lockup.png) no-repeat center/contain}
+.endtitle{font-family:var(--font-title); font-size:calc(clamp(34px,6vw,80px) * var(--title-scale) * var(--fs-k, 1)); font-weight:700; line-height:1.05; color:var(--ink)}
+.endtitle span{color:var(--red)}
+
+/* ═══ 사진 한 장씩 크게 보기 ═══ */
+#lightbox{
+  position:fixed; inset:0; z-index:940; display:none;
+  flex-direction:column; align-items:center; justify-content:center;
+  gap:18px; padding:52px clamp(24px,5vw,90px) 60px; background:var(--paper);
+}
+body.lb-on #lightbox{display:flex}
+#lightbox img{
+  max-width:100%; max-height:74vh; object-fit:contain; display:block;
+  border-radius:18px; border:1px solid var(--line); box-shadow:var(--shadow-lg);
+}
+#lightbox .lb-cap{
+  font-family:var(--font-title); font-weight:800; color:var(--ink);
+  font-size:calc(clamp(22px,2.4vw,36px) * var(--title-scale)); letter-spacing:-.02em;
+}
+#lightbox .lb-n{
+  position:absolute; top:22px; right:clamp(24px,5vw,90px);
+  font-family:var(--mono); font-size:18px; color:var(--faint); letter-spacing:.08em;
+}
+#lightbox .lb-hint{
+  position:absolute; bottom:22px; left:0; right:0; text-align:center;
+  font-family:var(--mono); font-size:14px; color:var(--faint); letter-spacing:.06em;
+}
+.stephint{
+  display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+  font-family:var(--mono); font-size:15px; color:var(--main-700);
+  background:var(--main-100); border:1px solid var(--main-200);
+  padding:7px 14px; border-radius:999px;
+}
+
+/* ═══ 오프닝 조정 패널 ═══ */
+#tunepanel{
+  position:fixed; top:64px; right:14px; z-index:960; width:288px;
+  max-height:calc(100vh - 96px); overflow-y:auto;
+  background:var(--ink); color:#fff; border-radius:14px; padding:14px 14px 12px;
+  box-shadow:0 18px 50px rgba(0,0,0,.32); font-size:12px;
+  transform:translateX(120%); transition:transform .3s cubic-bezier(.2,.7,.3,1);
+}
+body.tuning #tunepanel{transform:none}
+#tunepanel::-webkit-scrollbar{width:6px}
+#tunepanel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25); border-radius:3px}
+.tp-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px}
+.tp-head b{font-size:13px}
+.tp-head span{font-size:10.5px; opacity:.55}
+.tp-grp{border-top:1px solid rgba(255,255,255,.14); padding-top:10px; margin-top:10px}
+.tp-grp h4{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#8fd8c2; margin-bottom:8px}
+.tp-row{display:grid; grid-template-columns:56px 1fr 50px; gap:7px; align-items:center; margin-bottom:6px}
+.tp-k{opacity:.75; font-size:11px}
+.tp-row input[type=range]{width:100%; accent-color:#8fd8c2; height:16px}
+.tp-num{width:100%; background:rgba(255,255,255,.10); border:0; border-radius:5px;
+  color:#fff; font-size:11px; padding:3px 5px; font-family:var(--mono)}
+.tp-row input[type=color]{width:100%; height:22px; border:0; background:none; padding:0; cursor:pointer}
+.tp-mini{background:rgba(255,255,255,.14); border:0; color:#fff; border-radius:5px;
+  font-size:10px; padding:4px 6px; cursor:pointer}
+.tp-item{display:grid; grid-template-columns:1fr 22px 22px 22px; gap:4px; margin-bottom:5px}
+.tp-item .tp-name{
+  text-align:left; border:0; border-radius:6px; cursor:pointer; padding:6px 9px;
+  background:rgba(255,255,255,.10); color:#fff; font-size:11.5px; font-weight:700;
+  font-family:var(--font-body); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.tp-item.on .tp-name{background:#8fd8c2; color:#12241f}
+.tp-item .tp-ic{
+  border:0; border-radius:6px; cursor:pointer; background:rgba(255,255,255,.10);
+  color:#fff; font-size:10px; line-height:1; padding:0;
+}
+.tp-item .tp-ic:hover{background:rgba(255,255,255,.28)}
+.tp-item .tp-ic.del{background:rgba(217,48,37,.55)}
+.tp-item .tp-ic.del:hover{background:#D93025}
+.tp-add{display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:9px 0 4px}
+.tp-add span{font-size:10.5px; opacity:.55; margin-right:2px}
+.tp-add button{
+  border:0; border-radius:6px; cursor:pointer; background:rgba(143,216,194,.22);
+  color:#cdeee2; font-size:10.5px; font-weight:700; padding:5px 8px; font-family:var(--font-body);
+}
+.tp-add button:hover{background:#8fd8c2; color:#12241f}
+.tp-hint{font-size:10px; opacity:.5; margin:0 0 8px}
+.tp-foot{display:flex; gap:6px; margin-top:12px}
+.tp-btn{flex:1; border:0; border-radius:999px; padding:8px 10px; cursor:pointer;
+  background:rgba(255,255,255,.16); color:#fff; font-size:11.5px; font-weight:700}
+.tp-btn.go{background:#8fd8c2; color:#12241f}
+
+/* ═══ 편집 모드 ═══ */
+#editbar{
+  position:fixed; left:50%; transform:translateX(-50%) translateY(120%); bottom:18px; z-index:950;
+  display:flex; gap:8px; align-items:center; padding:9px 12px; border-radius:999px;
+  background:var(--ink); box-shadow:0 14px 40px rgba(0,0,0,.28); transition:transform .3s cubic-bezier(.2,.7,.3,1);
+}
+body.editing #editbar{transform:translateX(-50%) translateY(0)}
+#editbar span{color:#fff; font-size:12px; padding:0 8px; opacity:.85; white-space:nowrap}
+#editbar button{white-space:nowrap; font-family:var(--font-body); font-size:12px; font-weight:700; cursor:pointer; border:0; border-radius:999px; padding:8px 14px; background:rgba(255,255,255,.16); color:#fff; transition:.2s}
+#editbar button:hover{background:rgba(255,255,255,.3)}
+#editbar button.go{background:var(--main)}
+#editbar button.warn{background:var(--red)}
+body.editing [data-ed]{outline:1px dashed rgba(72,142,125,.45); outline-offset:3px; border-radius:3px; cursor:text}
+body.editing .ed-hot{outline:2px solid var(--red) !important; outline-offset:3px; border-radius:4px}
+#edtool{
+  position:fixed; z-index:970; display:none; gap:3px; padding:3px;
+  background:var(--ink); border-radius:8px; box-shadow:0 8px 22px rgba(0,0,0,.3);
+}
+#edtool button{
+  border:0; background:rgba(255,255,255,.14); color:#fff; cursor:pointer;
+  font-size:11px; font-weight:700; padding:5px 9px; border-radius:5px; line-height:1;
+  font-family:var(--font-body); white-space:nowrap;
+}
+#edtool button:hover{background:rgba(255,255,255,.32)}
+#edtool button[data-t="del"]{background:var(--red)}
+#edtool button[data-t="del"]:hover{background:#f0574c}
+.fsbtn{
+  position:absolute; right:10px; bottom:10px; z-index:5; cursor:pointer;
+  border:0; border-radius:999px; padding:9px 15px;
+  background:rgba(13,21,18,.72); color:#fff; font-family:var(--font-body);
+  font-size:15px; font-weight:700; backdrop-filter:blur(6px); transition:.2s;
+}
+.fsbtn:hover{background:var(--red)}
+body.editing .fsbtn{display:none}
+
+#edtool button[data-t="up"]{background:rgba(143,216,194,.3)}
+#edtool input[data-t="fs"]{
+  width:42px; border:0; border-radius:5px; padding:5px 4px; text-align:center;
+  background:rgba(255,255,255,.92); color:#12241f; font-size:11.5px; font-weight:700;
+  font-family:var(--mono); -moz-appearance:textfield;
+}
+#edtool input[data-t="fs"]::-webkit-outer-spin-button,
+#edtool input[data-t="fs"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
+#edtool .ed-unit{color:rgba(255,255,255,.55); font-size:10px; align-self:center; margin:0 2px 0 -1px}
+#edtool .ed-dim{
+  color:rgba(255,255,255,.6); font-size:10.5px; font-family:var(--mono);
+  align-self:center; padding:0 6px 0 4px; white-space:nowrap; min-width:62px; text-align:right;
+}
+#edtool button[data-t="move"]{background:rgba(143,216,194,.3); cursor:grab; touch-action:none}
+#edtool .ed-sep{width:1px; background:rgba(255,255,255,.2); margin:2px 1px}
+#edresize{
+  position:fixed; z-index:971; display:none; width:14px; height:14px; border-radius:4px;
+  background:var(--red); border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.35);
+  cursor:nwse-resize; touch-action:none;
+}
+body.ed-dragging, body.ed-dragging *{user-select:none !important; cursor:grabbing !important}
+body.editing .ed-hot{outline:2px solid var(--red) !important; outline-offset:2px; border-radius:4px}
+body.editing [data-ed]:empty{min-height:1em; min-width:2em; background:rgba(217,48,37,.07)}
+body.editing [data-ed]:hover{outline-color:var(--red); background:rgba(255,255,255,.5)}
+body.editing [data-ed]:focus{outline:2px solid var(--main); background:#fff}
+body.editing #deck{scroll-snap-type:none}
+body.editing .hero-top,
+body.editing .hero-copy,
+body.editing .hero-meta{pointer-events:auto}
+body.editing #bubbles{pointer-events:none}
+body.tuning .hero-top,
+body.tuning .hero-copy{pointer-events:none}
+
+@media(max-height:760px){
+  .hero-top{top:10vh}
+  .hero-copy{bottom:13vh}
+}
+@media(max-width:820px){.g2{grid-template-columns:1fr} #dots{display:none} #hint{display:none}}
+@media print{ body{overflow:visible} #deck{position:static; overflow:visible} section{min-height:auto; page-break-after:always} }
+
+/* ===== 브랜드(FFF) 매장 사진 ===== */
+.storyshots{
+  display:grid; gap:14px;
+  grid-template-columns:1.12fr 1.62fr 0.95fr 0.66fr;
+  grid-auto-rows:clamp(200px, calc(100vh - 440px), 660px);
+}
+.sshot{margin:0; position:relative; border-radius:16px; overflow:hidden;
+  border:1px solid var(--line); box-shadow:var(--shadow); background:var(--soft)}
+.sshot img{width:100%; height:100%; object-fit:cover; display:block}
+.sshot.top img{object-position:center top}
+.sshot figcaption{
+  position:absolute; left:0; right:0; bottom:0; padding:38px 15px 14px; color:#fff;
+  background:linear-gradient(to top, rgba(10,22,19,.92), rgba(10,22,19,.58) 48%, rgba(10,22,19,0));
+}
+.sshot .st{display:block; font-family:var(--font-title); font-weight:700; letter-spacing:-.01em;
+  font-size:calc(19.5px * var(--title-scale) * var(--fs-k, 1)); margin-bottom:4px}
+.sshot .sd{display:block; color:rgba(255,255,255,.92); line-height:1.45;
+  font-size:calc(17px * var(--body-scale) * var(--fs-k, 1))}
+.sshot .sn{position:absolute; top:12px; left:12px; z-index:2;
+  background:rgba(255,255,255,.93); color:var(--main-700);
+  font-family:var(--font-title); font-weight:700; letter-spacing:.05em;
+  font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); padding:4px 11px; border-radius:999px}
+.brandnote{margin-top:14px; padding:11px 0 0; border-top:1px solid var(--line)}
+section[data-key="brand"] .lede{margin-bottom:16px}
+section[data-key="brand"] h2{margin-bottom:10px}
+@media(max-width:1100px){ .storyshots{grid-template-columns:repeat(2,1fr)} }
+
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="topbar">
+  <div class="mark"></div>
+  <div id="secname"></div>
+  <div id="counter"><b>01</b> / 22</div>
+</div>
+<div id="dots"></div>
+<div id="hint"><span><kbd>↓</kbd><kbd>Space</kbd> 다음</span><span><kbd>↑</kbd> 이전</span><span><kbd>F</kbd> 전체화면</span><span><kbd>E</kbd> 내용 편집</span><span><kbd>G</kbd> 오프닝 조정</span></div>
+
+<div id="editbar">
+  <span>✎ 편집 — 글씨 클릭해 수정 · 블록 위 도구로 삭제/복제/크기</span>
+  <button class="go" data-act="save">저장</button>
+  <button data-act="undo">실행취소</button>
+  <button data-act="tidy" title="글씨는 그대로 두고 크기·위치만 원래대로">레이아웃 정리</button>
+  <button data-act="reset">전체 되돌리기</button>
+  <button class="warn" data-act="close">편집 끝내기</button>
+</div>
+
+<div id="deck">
+
+<!-- ══════════ 00 HERO ══════════ -->
+<section data-key="hero" id="hero" data-t="오프닝">
+  <canvas id="bubbles"></canvas>
+  <div id="heroscrim"></div>
+  <div class="hero-top">
+    <div class="hero-kicker" id="heroKicker">Final Project · Retail Gamification</div>
+  </div>
+  <div class="hero-copy">
+    <div class="hero-line" id="heroLine">이태원 편집샵 <b>FFF</b>의 브랜드 공간과 게임 IP <b>Don't Wake Up</b>을 잇는,<br>온·오프라인 통합 리테일 게이미피케이션 프로젝트</div>
+    <div class="pophint" id="heroHint">◦ 캐릭터를 클릭하면 한 바퀴 돕니다</div>
+  </div>
+  <div class="hero-meta">
+    <span><b>TEAM</b> <i id="heroTeam" style="font-style:normal">서미숙 · 위영복 · 정은서 · 정은화</i></span>
+    <span><b>ENGINE</b> <i id="heroEngine" style="font-style:normal">Unity 6.3 · Photon</i></span>
+    <span><b>PERIOD</b> <i id="heroPeriod" style="font-style:normal">8 WEEKS</i></span>
+  </div>
+</section>
+
+<!-- ══════════ 01 정의 ══════════ -->
+<section data-key="definition" data-t="한 줄 정의">
+  <div class="wrap">
+    <div class="eyebrow rv">01 — Definition</div>
+    <h2 class="rv">매장을 <em>게임</em>으로,<br>게임을 <em>매장</em>으로.</h2>
+    <p class="lede rv">RRR은 콜라보 굿즈를 파는 프로젝트가 아닙니다. <strong>물리적 매장 자체를 하나의 플레이 공간으로 재해석</strong>하고, 모바일 게임과 오프라인 인터랙션을 하나의 순환 구조로 묶는 <strong>리테일 게이미피케이션 플랫폼</strong>입니다. 고객은 '쇼핑'이 아니라 '경험'을 소비합니다.</p>
+    <div class="grid g4 stagger">
+      <div class="card"><div class="num">4</div><h3 style="margin-top:12px">인 멀티플레이</h3><p class="small">Photon 기반 실시간 동기화 러닝 레이스. 경쟁이 반복 플레이와 체류를 만든다.</p></div>
+      <div class="card"><div class="num r">2</div><h3 style="margin-top:12px">개의 오프라인 인터랙션</h3><p class="small">페이스 트래킹 · 버블 팝. 방문객을 미디어 아트의 주인공으로 만든다.</p></div>
+      <div class="card"><div class="num">51</div><h3 style="margin-top:12px">개 3D 에셋</h3><p class="small">FFF 실제 판매 굿즈를 게임 오브젝트로 모델링. 매장이 곧 맵이 된다.</p></div>
+      <div class="card"><div class="num r">8</div><h3 style="margin-top:12px">주 개발</h3><p class="small">그레이박싱 선행 → 코어 로직 → 인터랙션 → 폴리싱. 리스크 관리형 스프린트.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 프로젝트 개요 ══════════ -->
+<section data-key="overview" data-t="프로젝트 개요">
+  <div class="wrap">
+    <div class="eyebrow rv">02 — Project Overview</div>
+    <h2 class="rv">"매장을 달리며 브랜드를 발견하고,<br>내 얼굴로 <em>다시 한 번</em> 남기는 경험"</h2>
+    <div class="grid g2 stagger" style="gap:22px; align-items:stretch">
+      <div class="card">
+        <h3 style="font-size:calc(22px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:18px">기본 정보</h3>
+        <div class="hr" style="margin:0 0 18px; background:var(--main); height:2px"></div>
+        <div class="kv" style="margin-bottom:16px"><span class="k">장르</span><span class="v"><b>3D 캐주얼 러닝 레이싱</b> + 리테일 게이미피케이션<br><span class="tiny">(Running Race &amp; Brand Experience)</span></span></div>
+        <div class="kv" style="margin-bottom:16px"><span class="k">플랫폼</span><span class="v"><b>모바일</b> (Unity 6.3 · URP)<br><span class="tiny">오프라인 인터랙션은 웹 브라우저</span></span></div>
+        <div class="kv" style="margin-bottom:16px"><span class="k">모드</span><span class="v">4인 멀티플레이 · 싱글 레이스 · 어드벤처(자유 탐험)</span></div>
+        <div class="kv"><span class="k">타겟 플레이어</span><span class="v">20~30대 MZ세대 중<br>패션·서브컬처·게임을 함께 소비하는 고관여층</span></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:calc(22px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:18px">기획 및 개발 상세</h3>
+        <div class="hr" style="margin:0 0 18px; background:var(--main); height:2px"></div>
+        <p class="tiny" style="margin-bottom:8px">핵심 플레이 감정</p>
+        <div class="tags" style="margin-bottom:20px">
+          <span class="tag c">경쟁</span><span class="tag c">발견</span><span class="tag p">과시</span><span class="tag p">리프레시</span>
+        </div>
+        <p class="tiny" style="margin-bottom:8px">개발 노트</p>
+        <ul class="dash">
+          <li><b>조작</b> — 가상 조이스틱 + 점프 · 슬라이드 · 대시</li>
+          <li><b>시점</b> — 캐릭터 백뷰 기반 3인칭</li>
+          <li><b>아트</b> — 유기적 3D 형태 · 오프화이트 지면 · 유리 재질 UI</li>
+          <li><b>네트워크</b> — Photon 기반 4인 실시간 위치 동기화</li>
+          <li><b>화면비</b> — 1080×1920 세로 고정 (숏폼 UGC 전제)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 02 IP 확장 ══════════ -->
+<section data-key="ip" data-t="IP 확장 — 전작에서 이번 작으로">
+  <div class="wrap">
+    <div class="eyebrow rv">03 — IP Expansion</div>
+    <h2 class="rv">전작의 주인공을 <span class="g">이어받았습니다</span></h2>
+    <p class="lede rv">이번 프로젝트는 새로 시작한 게임이 아닙니다. 직전 프로젝트 <strong>'Don't Wake Up'</strong>에서 만든 캐릭터와 세계관을 그대로 계승하고, 이를 <strong>브랜드 협업이라는 새로운 무대로 확장</strong>한 IP 확장 프로젝트입니다.</p>
+    <div class="grid g2 stagger" style="gap:22px; align-items:stretch">
+      <div class="card cy">
+        <div class="tags" style="margin-bottom:14px"><span class="tag c">Previous</span><span class="tag">직전 프로젝트</span></div>
+        <h3 style="font-size:calc(27px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:14px">Don't Wake Up</h3>
+        <ul class="dash">
+          <li><b>꿈속의 방</b> — 침실 · 엘리베이터 · 지하철 · Final Room으로 이어지는 몽환적 공간 서사</li>
+          <li><b>fallingdream</b> — 공간을 부유하고 낙하하는 미니게임</li>
+          <li><b>하프톤 · 픽셀 셰이더</b> — 레트로하면서 미래적인 시각 언어</li>
+          <li><b>1인칭 · 싱글 서사</b> — 혼자 꿈을 헤매는 구조</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <div class="tags" style="margin-bottom:14px"><span class="tag p">Current</span><span class="tag">이번 프로젝트</span></div>
+        <h3 style="font-size:calc(27px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:14px">RRR × FFF</h3>
+        <ul class="dash">
+          <li><b>현실의 매장</b> — 이태원 FFF 매장 구조를 그대로 3D 맵으로 재해석</li>
+          <li><b>낙하 진입 연출 계승</b> — fallingdream의 낙하 감각을 게임 시작 연출로 전환</li>
+          <li><b>셰이더 언어 유지</b> — 동일한 하프톤·유리 질감으로 IP 일관성 확보</li>
+          <li><b>4인 멀티 경쟁 + O2O</b> — 싱글 서사에서 소셜·브랜드 경험으로 확장</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card rv" style="margin-top:20px; display:flex; gap:26px; align-items:center; flex-wrap:wrap">
+      <div style="flex:1; min-width:280px">
+        <h3>왜 IP를 이어받았나</h3>
+        <p class="small" style="margin-top:8px">새 세계관을 다시 세우는 대신 검증된 캐릭터·아트 방향을 승계함으로써, <b>8주라는 일정 안에서 아트 리소스를 재활용</b>하고 남는 리소스를 멀티플레이와 인터랙션이라는 신규 도전 과제에 집중 투입할 수 있었습니다. 동시에 "게임 IP가 브랜드 공간으로 확장된다"는 서사 자체가 이번 기획의 핵심 논리가 됩니다.</p>
+      </div>
+      <div class="tags" style="max-width:300px">
+        <span class="tag c">세계관 계승</span><span class="tag c">캐릭터 계승</span><span class="tag p">무대 확장</span><span class="tag p">플레이 확장</span><span class="tag a">리소스 효율</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 03 시장 ══════════ -->
+<section data-key="market" data-t="시장 분석 — 왜 지금인가">
+  <div class="wrap">
+    <div class="eyebrow rv">04 — Why Now</div>
+    <h2 class="rv">오프라인 매장의 경쟁력은<br>이제 <em>'상품의 양'</em>이 아니라 <em>'경험의 밀도'</em></h2>
+    <p class="lede rv">편집샵은 진열·판매의 1차원적 거래 공간을 넘어 문화를 소비하는 복합 공간으로 진화했습니다. 문제는 <strong>기존의 평면적 포토존과 굿즈 증정 이벤트가 이미 포화 상태</strong>라는 점입니다.</p>
+    <div class="grid g3 stagger">
+      <div class="card"><span class="tag p">Problem 01</span><h3 style="margin:14px 0 8px">정적인 포토존의 한계</h3><p class="small">벽에 붙은 그래픽 앞에서 사진 한 장. 한 번 찍으면 끝이고, 재방문 동기가 남지 않습니다.</p></div>
+      <div class="card"><span class="tag p">Problem 02</span><h3 style="margin:14px 0 8px">온·오프라인의 단절</h3><p class="small">현장 경험이 현장에서 종료됩니다. 방문객이 디지털 채널로 넘어오지 않고, 온라인 유저도 매장에 올 이유가 없습니다.</p></div>
+      <div class="card"><span class="tag p">Problem 03</span><h3 style="margin:14px 0 8px">지리적 트래픽 한계</h3><p class="small">이태원이라는 입지는 강력하지만, 오프라인에 한정됩니다. 브랜드와 상시로 연결될 접점이 없습니다.</p></div>
+    </div>
+    <div class="card cy rv" style="margin-top:20px">
+      <h3>RRR의 답</h3>
+      <p class="small" style="margin-top:8px">고객의 <b>움직임과 얼굴을 실시간으로 반영</b>하는 고밀도 기술 체험 + 게임 보상이 오프라인 쿠폰이 되고 오프라인 체험이 온라인 스킨을 해금하는 <b>양방향 O2O 루프</b>. 방문 자체가 콘텐츠가 되게 만듭니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 브랜드 소개 FFF ══════════ -->
+<section data-key="brand" data-t="브랜드 — FFF 편집샵">
+  <div class="wrap">
+    <div class="eyebrow rv">05 — Brand</div>
+    <h2 class="rv">이태원 <em>FFF</em> — For Family and Friends</h2>
+    <p class="lede rv">협업 상대인 <strong>FFF</strong>는 옷을 파는 가게가 아니라 <strong>취향을 큐레이션하는 공간</strong>입니다. 공간도 고객도 이미 준비되어 있다는 점이 이번 기획의 전제였습니다.</p>
+    <div class="storyshots stagger">
+      <figure class="sshot"><span class="sn">STOREFRONT</span>
+        <img src="assets/store/front.jpg" alt="FFF 매장 외관">
+        <figcaption><b class="st">간판 대신 스크린</b><span class="sd">이태원 골목 안, 문 앞에서부터 태도가 보이는 입구.</span></figcaption>
+      </figure>
+      <figure class="sshot"><span class="sn">SPACE</span>
+        <img src="assets/store/inside.jpg" alt="FFF 매장 내부">
+        <figcaption><b class="st">공간 자체가 콘텐츠</b><span class="sd">제품을 나열하는 쇼룸이 아니라, 머무는 것 자체가 경험이 되도록 연출된 매장.</span></figcaption>
+      </figure>
+      <figure class="sshot"><span class="sn">CURATION</span>
+        <img src="assets/store/display.jpg" alt="FFF 매장 진열">
+        <figcaption><b class="st">직접 고른 라인업</b><span class="sd">국내외 니치 브랜드를 골라 들입니다. 남들과 다른 것을 찾는 고객의 소속감.</span></figcaption>
+      </figure>
+      <figure class="sshot top"><span class="sn">COMMUNITY</span>
+        <img src="assets/store/insta.jpg" alt="FFF 인스타그램">
+        <figcaption><b class="st">팔로워 1.9만</b><span class="sd">매장 경험을 스스로 인증하고 퍼뜨리는 고객층.</span></figcaption>
+      </figure>
+    </div>
+    <p class="small rv brandnote">공간도 고객도 이미 갖춰져 있지만 <b>체험은 정적인 포토존 수준</b>에 머물러 있었고, <b>매장을 벗어나면 브랜드와의 접점이 끊깁니다.</b> 이 두 지점이 다음 장에서 이야기할 협업의 출발점입니다.</p>
+  </div>
+</section>
+
+<!-- ══════════ 04 FIT ══════════ -->
+<section data-key="fit" data-t="브랜드 × IP 적합성">
+  <div class="wrap">
+    <div class="eyebrow rv">06 — Brand Fit</div>
+    <h2 class="rv">FFF와 Don't Wake Up은<br>같은 <span class="g">시각 언어</span>를 쓴다</h2>
+    <p class="lede rv">협업의 성패는 브랜드 톤과 IP 톤이 억지 없이 겹치느냐에 달려 있습니다. FFF의 아방가르드한 서브컬처 큐레이션과 Don't Wake Up의 몽환적 셰이더는 <strong>서로를 설명할 필요가 없는 조합</strong>이었습니다.</p>
+    <table class="cmp rv">
+      <thead><tr><th>항목</th><th>FFF의 현재 자산</th><th>RRR 도입 후 시너지</th></tr></thead>
+      <tbody>
+        <tr><td>공간</td><td class="was">시각적으로 강렬한 매장 무드, 니치 브랜드 라인업 (CFIERCE, CHLOMA, KOBINAI 외)</td><td class="now">몽환적·픽셀화된 셰이더 그래픽과 융화되어 매장이 <b>초현실적 게임 공간</b>으로 확장</td></tr>
+        <tr><td>고객</td><td class="was">높은 SNS 공유율. 다만 포토존 수요는 정적인 형태에 머무름</td><td class="now">페이스 트래킹·버블 인터랙션으로 <b>기존에 없던 동적 숏폼 UGC</b> 생성 유도</td></tr>
+        <tr><td>트래픽</td><td class="was">이태원이라는 지리적 한계 — 오프라인 한정</td><td class="now">모바일 러닝게임으로 방문 전·후에도 <b>브랜드와 상시 연결</b> (O2O 브릿지)</td></tr>
+        <tr><td>상품</td><td class="was">진열대 위의 굿즈 — 감상과 구매의 대상</td><td class="now">굿즈가 게임 내 수집 요소이자 부유하는 오브제로 등장, <b>쇼핑이 퀘스트로 치환</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ 05 RRR 삼각 ══════════ -->
+<section data-key="concept" data-t="RRR — 세 가지 축">
+  <div class="wrap">
+    <div class="eyebrow rv">07 — Core Concept</div>
+    <h2 class="rv">run, rest, refresh</h2>
+    <p class="lede rv">프로젝트 이름은 곧 고객 경험의 설계도입니다. 매장에서의 시간을 세 개의 상태로 나누고, 각각에 다른 콘텐츠를 배치했습니다.</p>
+    <div class="tabs rv" data-tabs="rrr">
+      <button class="tab on" data-p="run">RUN — 역동적 경쟁</button>
+      <button class="tab" data-p="rest">REST — 휴식과 체류</button>
+      <button class="tab" data-p="refresh">REFRESH — 새로운 영감</button>
+    </div>
+    <div class="rv">
+      <div class="pane on" data-pane="run">
+        <div class="grid g2" style="gap:22px">
+          <div class="card cy">
+            <span class="tag c">Run</span>
+            <h3 style="margin:14px 0 10px; font-size:calc(25px * var(--title-scale) * var(--fs-k, 1) * .92)">매장을 누비며 달린다</h3>
+            <p class="small">FFF 매장의 실제 레이아웃을 모티브로 한 3D 스테이지. 플레이어는 <b>맵 상단에서 낙하하며 진입</b>하고, 진열대·마네킹·행거가 장애물과 지형지물이 됩니다. 4인이 동시에 달리며 슬라이딩·점프·대시로 회피하고 결승선을 다툽니다.</p>
+            <div class="hr"></div>
+            <ul class="dash">
+              <li><b>가상 윈도우 쇼핑</b> — 달리는 동안 자연스럽게 제품을 마주친다</li>
+              <li><b>공간적 스토리텔링</b> — 매장 구역이 곧 스테이지·체크포인트</li>
+              <li><b>수집 퍼즐</b> — 'helloworld' 키캡 조각을 모아 부스터 게이지 충전</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>왜 러닝 레이스인가</h3>
+            <p class="small" style="margin-top:8px">매장 투어를 게임 규칙으로 옮기기에 가장 자연스러운 장르입니다. 트랙을 따라 달리면 <b>기획자가 의도한 순서대로 제품을 노출</b>할 수 있고, 조작이 단순해 매장에서 처음 잡는 사람도 30초 안에 이해합니다. 4인 경쟁은 재도전 욕구를 만들어 체류 시간으로 직결됩니다.</p>
+            <div class="hr"></div>
+            <div class="tags"><span class="tag c">Photon 실시간 동기화</span><span class="tag c">휴머노이드 애니메이션</span><span class="tag c">스플라인 기반 순위</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pane" data-pane="rest">
+        <div class="grid g2" style="gap:22px">
+          <div class="card cy">
+            <span class="tag c">Rest</span>
+            <h3 style="margin:14px 0 10px; font-size:calc(25px * var(--title-scale) * var(--fs-k, 1) * .92)">머무는 시간을 콘텐츠로</h3>
+            <p class="small">체험존 대기 시간과 매장 내 휴식 시간이 <b>이탈 구간이 아니라 참여 구간</b>이 되도록 설계했습니다. 대기 중에는 모바일로 게임에 접속해 다른 방문객과 멀티플레이를 하고, 그 자체가 매장 안에 더 오래 머무는 이유가 됩니다.</p>
+          </div>
+          <div class="card">
+            <h3>대기열을 설계한다</h3>
+            <p class="small" style="margin-top:8px">인터랙티브 체험의 최대 리스크는 <b>병목</b>입니다. 그레이박싱 단계에서 검증한 동선 데이터를 근거로 대기 공간을 사전 산출하고, 대기 중 즐길 모바일 미니 콘텐츠를 대체재로 배치해 이탈을 방지합니다.</p>
+            <div class="hr"></div>
+            <ul class="dash">
+              <li><b>스마트 웨이팅</b> — 대기 순번 알림 연동</li>
+              <li><b>Fallback 콘텐츠</b> — QR 스캔 간이 체험으로 트래픽 분산</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="pane" data-pane="refresh">
+        <div class="grid g2" style="gap:22px">
+          <div class="card accent">
+            <span class="tag p">Refresh</span>
+            <h3 style="margin:14px 0 10px; font-size:calc(25px * var(--title-scale) * var(--fs-k, 1) * .92)">내 얼굴이 캐릭터가 된다</h3>
+            <p class="small">거울 앞에 서면 내 표정이 게임 캐릭터로 옮겨가고, 손을 뻗으면 FFF 로고 비눗방울이 터집니다. 예측 가능한 포토존이 아니라 <b>시각적 충격과 리프레시</b>를 목표로 한 구간입니다.</p>
+            <div class="hr"></div>
+            <p class="small">이 두 인터랙션은 이번 프로젝트에서 <b>가장 강한 바이럴 트리거</b>이자, 온라인 유저가 오프라인 매장에 와야만 하는 이유입니다.</p>
+          </div>
+          <div class="card">
+            <h3>Refresh가 만드는 루프</h3>
+            <p class="small" style="margin-top:8px">체험 → 촬영 → 업로드 → 다른 사람의 발견 → 방문. 고객이 스스로 브랜드의 앰버서더가 되는 구조이며, 광고비 대비 최고 효율의 오가닉 마케팅으로 이어집니다.</p>
+            <div class="hr"></div>
+            <div class="tags"><span class="tag p">Face Tracking</span><span class="tag p">Bubble Pop</span><span class="tag a">숏폼 최적화</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 06 O2O ══════════ -->
+<section data-key="o2o" data-t="O2O 선순환 루프">
+  <div class="wrap">
+    <div class="eyebrow rv">08 — O2O Loop</div>
+    <h2 class="rv">끊기지 않는 <span class="g">양방향 순환</span></h2>
+    <p class="lede rv">온라인의 성취가 오프라인 혜택으로, 오프라인 체험이 온라인 자산으로 치환됩니다. 어느 쪽에서 진입하든 반대편으로 넘어갈 이유가 생깁니다.</p>
+    <div class="card rv" style="padding:32px 28px">
+      <svg class="flowsvg" viewBox="0 0 1080 300" aria-label="O2O 루프 다이어그램">
+        <defs>
+          <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#D93025"/></marker>
+          <marker id="ah2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#488E7D"/></marker>
+        </defs>
+        <g>
+          <rect x="40" y="98" width="230" height="104" rx="14" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.5"/>
+          <text x="155" y="132" text-anchor="middle" fill="#2C5A4E" font-size="12" font-family="monospace" font-weight="700" letter-spacing="2">ONLINE</text>
+          <text x="155" y="158" text-anchor="middle" fill="#1D2A27" font-size="17" font-weight="700">모바일 러닝게임</text>
+          <text x="155" y="180" text-anchor="middle" fill="#5A6B65" font-size="12">4인 멀티 · 어드벤처</text>
+        </g>
+        <g>
+          <rect x="810" y="98" width="230" height="104" rx="14" fill="#FDF1F0" stroke="#D93025" stroke-width="1.5"/>
+          <text x="925" y="132" text-anchor="middle" fill="#B3241B" font-size="12" font-family="monospace" font-weight="700" letter-spacing="2">OFFLINE</text>
+          <text x="925" y="158" text-anchor="middle" fill="#1D2A27" font-size="17" font-weight="700">FFF 이태원 매장</text>
+          <text x="925" y="180" text-anchor="middle" fill="#5A6B65" font-size="12">인터랙션 체험존</text>
+        </g>
+        <path d="M275,128 C430,62 650,62 805,128" fill="none" stroke="#D93025" stroke-width="2" marker-end="url(#ah)"/>
+        <path d="M805,176 C650,242 430,242 275,176" fill="none" stroke="#488E7D" stroke-width="2" marker-end="url(#ah2)"/>
+        <g>
+          <rect x="392" y="42" width="296" height="46" rx="10" fill="#fff" stroke="#F3C6C2"/>
+          <text x="540" y="62" text-anchor="middle" fill="#D93025" font-size="11" font-family="monospace" font-weight="700" letter-spacing="1.5">ONLINE → OFFLINE</text>
+          <text x="540" y="79" text-anchor="middle" fill="#1D2A27" font-size="12.5">우승 보상 쿠폰 · 한정 굿즈 교환권 (72h)</text>
+        </g>
+        <g>
+          <rect x="392" y="214" width="296" height="46" rx="10" fill="#fff" stroke="#BFDDD4"/>
+          <text x="540" y="234" text-anchor="middle" fill="#2C5A4E" font-size="11" font-family="monospace" font-weight="700" letter-spacing="1.5">OFFLINE → ONLINE</text>
+          <text x="540" y="251" text-anchor="middle" fill="#1D2A27" font-size="12.5">현장 한정 해금 스킨 · 이펙트 · 방문 뱃지</text>
+        </g>
+      </svg>
+    </div>
+    <div class="grid g3 stagger" style="margin-top:18px">
+      <div class="card"><div class="kv"><span class="k">Acquisition</span><span class="v">매장 외벽 QR · SNS 릴스</span></div><p class="tiny" style="margin-top:10px">게임 즉시 다운로드 유도</p></div>
+      <div class="card"><div class="kv"><span class="k">Retention</span><span class="v">수집형 키캡 데일리 보상</span></div><p class="tiny" style="margin-top:10px">단발성 플레이 방지</p></div>
+      <div class="card"><div class="kv"><span class="k">Revenue</span><span class="v">타임어택 할인 쿠폰</span></div><p class="tiny" style="margin-top:10px">72시간 제한으로 즉각 방문 유도</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 08 플로우 ══════════ -->
+<section data-key="flow" data-t="게임 플레이 플로우">
+  <div class="wrap">
+    <div class="eyebrow rv">09 — Play Flow</div>
+    <h2 class="rv">접속에서 <em>매장 방문</em>까지, 7단계</h2>
+    <p class="lede rv">유저 여정의 마지막 단계를 '게임 종료'가 아니라 '오프라인 결제'로 설계했습니다. 각 단계마다 다음 단계로 넘어갈 장치가 있습니다.</p>
+    <div class="steps rv">
+      <div class="step"><div class="si">01</div><div class="sh">로그인</div><div class="sd">앱 실행 · 소셜 계정 연동 → FFF 브랜드 영상 후 몽환적 대기실 로비 입장</div></div>
+      <div class="step"><div class="si">02</div><div class="sh">매칭</div><div class="sd">'FFF 매장 대시' 모드 선택 후 4인 대기 → Photon 매칭, 각자의 휴머노이드 캐릭터 등장</div></div>
+      <div class="step"><div class="si">03</div><div class="sh">멀티플레이</div><div class="sd">맵 상단에서 낙하 진입 · 장애물 레이싱 → 실시간 위치 동기화, 아이템 획득 시 픽셀·하프톤 파티클</div></div>
+      <div class="step"><div class="si">04</div><div class="sh">순위 결정</div><div class="sd">결승선 통과 순서로 1~4위 확정 → 우승 캐릭터 세레모니 애니메이션 및 랩타임 기록</div></div>
+      <div class="step"><div class="si">05</div><div class="sh">보상 지급</div><div class="sd">결과 화면 리워드 박스 오픈 → 순위별 차등 할인 쿠폰 및 한정 굿즈 조각 인벤토리 지급</div></div>
+      <div class="step"><div class="si">06</div><div class="sh">QR 전환</div><div class="sd">쿠폰을 QR로 변환 → 캡처 방지를 위해 실시간 갱신되는 동적 QR 생성</div></div>
+      <div class="step"><div class="si">07</div><div class="sh">오프라인 방문</div><div class="sd">이태원 FFF 매장 결제 시 QR 제시 → POS 연동 할인 적용, 게임 내 '방문 달성 뱃지' 실시간 언락</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 07 게임 시스템 ══════════ -->
+<section data-key="system" data-t="게임 시스템 · 씬 구조">
+  <div class="wrap">
+    <div class="eyebrow rv">10 — Game System</div>
+    <h2 class="rv">Unity 6.3 · <span class="g">4개의 씬</span>으로 나뉜 구조</h2>
+    <p class="lede rv">기능을 씬과 모듈 단위로 분리해 <strong>4명이 동시에 작업해도 충돌이 나지 않는 구조</strong>를 먼저 세웠습니다. 캐릭터·카메라·리스폰·레코딩·결과 화면이 각각 독립 모듈입니다.</p>
+    <div class="grid g4 stagger">
+      <div class="card cy"><span class="tag c">Scene</span><h3 style="margin:12px 0 8px">Lobby</h3><p class="small">로그인 · 닉네임 · 캐릭터 선택 · 모드 진입. 브랜드 영상 후 몽환적 대기실로.</p></div>
+      <div class="card cy"><span class="tag c">Scene</span><h3 style="margin:12px 0 8px">Race</h3><p class="small">싱글 레이스. 스플라인 경로 기준 실시간 순위 계산, 대시 게이지, 낙하 리스폰.</p></div>
+      <div class="card cy"><span class="tag c">Scene</span><h3 style="margin:12px 0 8px">Adventure</h3><p class="small">자유 탐험 모드. 대시 게이지 비활성, 포토포즈 · 프리셋 촬영 중심.</p></div>
+      <div class="card cy"><span class="tag c">Scene</span><h3 style="margin:12px 0 8px">Multiplay</h3><p class="small">Photon 룸 생성 · 방 목록 · 빠른 입장 · 4인 레디 후 동시 시작.</p></div>
+    </div>
+    <div class="grid g2 stagger" style="margin-top:18px; gap:20px">
+      <div class="card">
+        <h3>핵심 기술 결정</h3>
+        <ul class="dash" style="margin-top:12px">
+          <li><b>휴머노이드 표준화</b> — 4종 캐릭터가 애니메이션 클립을 공유하도록 전부 Humanoid 리타게팅. 멀티 환경 동기화 리스크를 구조적으로 제거</li>
+          <li><b>스플라인 기반 순위</b> — 직선 거리 대신 코스 경로 진행률로 순위를 계산해, 지름길·역주행에도 순위가 흔들리지 않음</li>
+          <li><b>URP + 모바일 최적화</b> — 하프톤·유리 UI를 유지하면서 프레임 확보</li>
+          <li><b>낙하 리스폰</b> — 맵 밖 이탈 시 최근 체크포인트로 자동 복귀</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Glass UI 최적화</h3>
+        <p class="small" style="margin-top:10px">세계관의 핵심인 <b>유리 질감 UI(글래스모피즘)</b>는 실시간 굴절 연산이 모바일 프레임 드랍의 주범입니다. 무거운 리프랙션 대신 URP의 가벼운 Grab Pass + Kawase Blur 조합으로 <b>배경이 흐려지고 굴절되는 인상만 남기고 연산은 덜어냈습니다.</b></p>
+        <div class="hr"></div>
+        <div class="chipgrid">
+          <span class="chip">Grab Pass</span><span class="chip">Kawase Blur</span><span class="chip">Half-tone Shader</span>
+          <span class="chip">Post Processing</span><span class="chip">텍스처 압축</span><span class="chip">Draw Call 최적화</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 시스템 & 조작 ══════════ -->
+<section data-key="feature" data-t="시스템 · 조작 방식">
+  <div class="wrap">
+    <div class="eyebrow rv">11 — System Feature</div>
+    <h2 class="rv">30초 안에 이해되는 <span class="g">조작</span></h2>
+    <p class="lede rv">매장에서 처음 게임을 잡는 사람이 대부분입니다. 튜토리얼을 읽을 사람은 없다고 보고, <strong>버튼 세 개로 끝나는 조작계</strong>를 기준으로 설계했습니다.</p>
+    <div class="grid g2 stagger" style="gap:22px; align-items:stretch">
+      <div class="card">
+        <h3 style="font-size:calc(22px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:18px">게임 룰 및 조작</h3>
+        <div class="hr" style="margin:0 0 18px; background:var(--main); height:2px"></div>
+        <p class="tiny" style="margin-bottom:6px">기본 조작</p>
+        <p class="small" style="margin-bottom:18px"><b>가상 조이스틱</b>(좌측 하단, 터치 위치에 동적 생성) · <b>점프</b> · <b>슬라이드</b> · <b>대시</b>(우측)</p>
+        <p class="tiny" style="margin-bottom:6px">특수 룰</p>
+        <p class="small" style="margin-bottom:18px">맵 상단에서 <b>낙하하며 진입</b> · 코스 이탈 시 최근 체크포인트로 <b>자동 리스폰</b> · 'helloworld' <b>키캡 조각 수집 → 부스터 게이지</b></p>
+        <p class="tiny" style="margin-bottom:6px">HUD</p>
+        <p class="small" style="margin-bottom:18px">실시간 순위 · 랩타임 · 대시 게이지 · 수집 카운트<br><span class="tiny">어드벤처 모드에서는 대시 게이지와 순위를 숨겨 압박을 제거</span></p>
+        <p class="tiny" style="margin-bottom:6px">UI</p>
+        <p class="small">반투명 유리 재질(글래스모피즘) — 맵을 가리지 않도록 불투명 팝업 최소화</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:calc(22px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:18px">게임 진행 방식</h3>
+        <div class="hr" style="margin:0 0 18px; background:var(--main); height:2px"></div>
+        <svg class="flowsvg" viewBox="0 0 360 400" aria-label="게임 진행 흐름">
+          <defs>
+            <marker id="fa" markerWidth="9" markerHeight="9" refX="4.5" refY="8" orient="auto">
+              <path d="M0,0 L9,0 L4.5,9 Z" fill="#488E7D"/>
+            </marker>
+          </defs>
+          <g font-family="inherit" text-anchor="middle">
+            <rect x="80" y="6"   width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
+            <text x="180" y="32" font-size="15" font-weight="700" fill="#1D2A27">로비 · 캐릭터 선택</text>
+            <line x1="180" y1="50" x2="180" y2="64" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
+
+            <rect x="80" y="76"  width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
+            <text x="180" y="102" font-size="15" font-weight="700" fill="#1D2A27">4인 매칭</text>
+            <line x1="180" y1="120" x2="180" y2="134" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
+
+            <rect x="80" y="146" width="200" height="42" rx="9" fill="#FDF1F0" stroke="#D93025" stroke-width="1.4"/>
+            <text x="180" y="172" font-size="15" font-weight="700" fill="#1D2A27">낙하 진입 · 레이스</text>
+            <line x1="180" y1="190" x2="180" y2="204" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
+
+            <rect x="80" y="216" width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
+            <text x="180" y="242" font-size="15" font-weight="700" fill="#1D2A27">아이템 · 부스터 획득</text>
+            <line x1="180" y1="260" x2="180" y2="274" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
+
+            <rect x="80" y="286" width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
+            <text x="180" y="312" font-size="15" font-weight="700" fill="#1D2A27">순위 결정 · 보상</text>
+            <line x1="180" y1="330" x2="180" y2="344" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
+
+            <rect x="80" y="356" width="200" height="42" rx="9" fill="#FDF1F0" stroke="#D93025" stroke-width="1.4"/>
+            <text x="180" y="382" font-size="15" font-weight="700" fill="#1D2A27">QR → 오프라인 매장</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ══════════ 레벨 디자인 ══════════ -->
+<section data-key="level" data-t="레벨 디자인 · 맵 구조">
+  <div class="wrap">
+    <div class="eyebrow rv">12 — Level Design</div>
+    <h2 class="rv">FFF 매장의 <em>실제 동선</em>이<br>그대로 트랙이 됩니다</h2>
+    <p class="lede rv">맵을 새로 상상해서 그리지 않았습니다. 이태원 매장의 레이아웃을 <strong>회색 박스로 먼저 세우고 런타임에서 직접 뛰어다니며</strong> 구간을 나눴고, 각 구역이 곧 스테이지이자 체크포인트입니다.</p>
+    <div class="grid g4 stagger" style="gap:16px; align-items:stretch">
+      <div class="card cy">
+        <span class="tag c">Zone 01</span>
+        <h3 style="margin:14px 0 10px">Store Door</h3>
+        <ul class="dash">
+          <li>매장 입구 시네마틱</li>
+          <li>맵 상단에서 <b>낙하 진입</b></li>
+          <li>조작 익히는 완만한 구간</li>
+        </ul>
+      </div>
+      <div class="card cy">
+        <span class="tag c">Zone 02</span>
+        <h3 style="margin:14px 0 10px">진열 구역</h3>
+        <ul class="dash">
+          <li>진열대 · 행거 · 마네킹이 <b>장애물</b></li>
+          <li>실제 판매 굿즈 노출</li>
+          <li>키캡 조각 첫 수집 지점</li>
+        </ul>
+      </div>
+      <div class="card cy">
+        <span class="tag c">Zone 03</span>
+        <h3 style="margin:14px 0 10px">중앙 홀</h3>
+        <ul class="dash">
+          <li>맵 전체 구조를 인지하는 <b>허브</b></li>
+          <li>점프 · 슬라이드 복합 구간</li>
+          <li>부스터 게이지 최대 활용 지점</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <span class="tag p">Zone 04</span>
+        <h3 style="margin:14px 0 10px">Final Room</h3>
+        <ul class="dash">
+          <li>왜곡이 가장 심한 공간</li>
+          <li>세레모니 · 결승선</li>
+          <li>순위 확정 → 보상</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid g2 stagger" style="margin-top:18px; gap:20px">
+      <div class="card">
+        <h3>레이스 트랙 설계 원칙</h3>
+        <ul class="dash" style="margin-top:12px">
+          <li><b>노출 순서를 통제한다</b> — 달리는 경로가 곧 기획자가 의도한 제품 동선</li>
+          <li><b>스플라인 경로로 순위 계산</b> — 지름길·역주행에도 순위가 흔들리지 않음</li>
+          <li><b>낙하 리스폰</b> — 맵 밖으로 떨어져도 최근 체크포인트에서 즉시 재개</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>어드벤처 모드 — 같은 맵, 다른 규칙</h3>
+        <p class="small" style="margin-top:8px">동일한 맵을 <b>순위·시간 압박 없이 자유 탐험</b>하도록 열어 둔 모드입니다. 대시 게이지를 숨기고 포토포즈·프리셋 촬영을 전면에 배치해, 매장에서 대기하는 시간에 가장 잘 맞습니다. 맵 하나를 두 가지 경험으로 재사용하는 구조입니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 13 아트 ══════════ -->
+<section data-key="art" data-t="아트 디렉션 &amp; 3D 에셋">
+  <div class="wrap">
+    <div class="eyebrow rv">13 — Art Direction · 3D</div>
+    <h2 class="rv"><em>유기적인 3D 형태</em>가<br>이 프로젝트의 코어입니다</h2>
+    <p class="lede rv">캐릭터 4종과 FFF 실제 판매 굿즈 <strong>51개를 전부 직접 모델링</strong>했습니다. 딱딱한 하드서페이스가 아니라 <strong>둥글고 물컹한 유기적 형태</strong>를 기준으로 잡았고, 여기에 금속·반투명 유리의 차가운 질감을 대비시켜 이 세계관 특유의 이질감을 만들었습니다. 오프닝 화면에 떠 있는 캐릭터가 그 결과물이고, 이 발표 자료 안에서 실시간으로 돌아가고 있는 실제 모델입니다.</p>
+    <div class="grid g2 stagger" style="gap:22px">
+      <div class="card">
+        <h3 style="margin-bottom:14px">제작 에셋</h3>
+        <div class="chipgrid">
+          <span class="chip">Heart Bag ×5</span><span class="chip">Heart Necklace ×3</span><span class="chip">Bunny Ring</span>
+          <span class="chip">Cherry Ring</span><span class="chip">Red Ring</span><span class="chip">Skin Ring</span>
+          <span class="chip">Dot Stocking</span><span class="chip">Skull Stocking</span><span class="chip">Zebra Stocking</span>
+          <span class="chip">Horn Hats</span><span class="chip">Pink Hats</span><span class="chip">EarCuff</span>
+          <span class="chip">Bangle</span><span class="chip">Angel Leg</span><span class="chip">Devil Leg</span>
+          <span class="chip">Necktie ×2</span><span class="chip">Lolipop Pin</span><span class="chip">Eyelet Ribbon</span>
+          <span class="chip">Decorative Key</span><span class="chip">Flat Key</span><span class="chip">Dice</span>
+          <span class="chip">CCTV</span><span class="chip">Entrance</span><span class="chip">Final Room</span>
+          <span class="chip">Bubble Letters</span><span class="chip">Handkerchief</span><span class="chip">Pipe</span>
+          <span class="chip">Plate</span><span class="chip">Tong ×2</span><span class="chip">Lightercase</span>
+          <span class="chip">Ruby White</span><span class="chip">Bikini Necklace</span><span class="chip">+ 그 외</span>
+        </div>
+        <div class="hr"></div>
+        <p class="tiny">액세서리 · 가방 · 스타킹 · 모자부터 매장 입구와 Final Room까지 — 맵에 보이는 물건이 곧 매장에서 살 수 있는 물건이 되도록 한 것이 원칙이었습니다.</p>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px">
+        <div class="card cy">
+          <h3>형태 언어</h3>
+          <ul class="dash" style="margin-top:12px">
+            <li><b>유기적 실루엣</b> — 모든 오브제를 둥글고 부푼 곡면으로. 각진 면을 쓰지 않는 것이 규칙</li>
+            <li><b>차가움 × 물컹함</b> — 금속·반투명 유리의 차가운 질감과 슬라임 같은 생물학적 곡선을 한 화면에 대비</li>
+            <li><b>흰 공백에 부유</b> — 지면을 지우고 오브제를 띄워, 형태 자체가 주인공이 되게</li>
+            <li><b>레터링도 3D로</b> — 로고 글자마저 부푼 비눗방울 메시로 만들어 같은 형태 언어에 편입</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>하나의 에셋, 세 개의 런타임</h3>
+          <p class="small" style="margin-top:8px">같은 모델이 <b>Unity 인게임 · 웹 인터랙션 · 지금 이 발표 자료</b>에서 그대로 돌아갑니다. 리깅본을 GLB로 변환하고 블렌드셰이프·스키닝을 걷어내 웹용으로 경량화하는 파이프라인을 따로 잡았습니다. 에셋을 한 번 만들어 여러 런타임에 태우는 구조가 확장성의 실체입니다.</p>
+          <div class="hr"></div>
+          <div class="chipgrid">
+            <span class="chip">Blender · Nomad Sculpt</span><span class="chip">리토폴로지</span>
+            <span class="chip">FBX → GLB</span><span class="chip">웹 경량화</span><span class="chip">Unity Humanoid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 09 캐릭터 ══════════ -->
+<section data-key="chars" class="vid" data-t="캐릭터 4종">
+  <div class="wrap">
+    <div class="eyebrow rv">14 — Characters</div>
+    <h2 class="rv">기존 1종 + <span class="g">신규 3종</span></h2>
+    <p class="lede rv">Don't Wake Up에서 이어받은 캐릭터에 신규 3종을 더해 4인 레이스를 구성했습니다. 전원 Nomad Sculpt · Blender로 제작 후 리토폴로지, <strong>Unity 휴머노이드 규격으로 리깅을 통일</strong>해 동일 애니메이션 클립을 공유합니다. 오프닝 화면에 떠다니는 캐릭터가 바로 이 리깅본입니다.</p>
+    <div class="grid g4 stagger">
+      <div><div class="phone" data-video="media/char-ringring.mp4" data-poster="posters/char-ringring.jpg"></div><div class="phcap"><b>링링 RingRing</b>완주 플레이</div></div>
+      <div><div class="phone" data-video="media/char-bubu.mp4" data-poster="posters/char-bubu.jpg"></div><div class="phcap"><b>부부 BuBu</b>완주 플레이</div></div>
+      <div><div class="phone" data-video="media/char-popo.mp4" data-poster="posters/char-popo.jpg"></div><div class="phcap"><b>포포 PoPo</b>완주 플레이</div></div>
+      <div><div class="phone" data-video="media/char-pipi.mp4" data-poster="posters/char-pipi.jpg"></div><div class="phcap"><b>피피 PiPi</b>완주 플레이</div></div>
+    </div>
+    <div class="card rv" style="margin-top:18px; display:flex; gap:30px; flex-wrap:wrap">
+      <div style="flex:1; min-width:250px"><div class="kv"><span class="k">Sculpt / Model</span><span class="v">Nomad Sculpt · Blender · Tripo 3D · Rodin</span></div></div>
+      <div style="flex:1; min-width:250px"><div class="kv"><span class="k">Rig</span><span class="v">A-pose → 1m 스케일 리깅 → Unity Humanoid</span></div></div>
+      <div style="flex:1; min-width:250px"><div class="kv"><span class="k">Animation</span><span class="v">Running · Falling Down · Getting Up · Stumble · Ready Idle</span></div></div>
+      <div style="flex:1; min-width:250px"><div class="kv"><span class="k">Blend Shape</span><span class="v">4종 전부 표정 블렌드셰이프 → 오프라인 인터랙션 연동</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 10 인게임 ══════════ -->
+<section data-key="ingame" class="vid" data-t="인게임 — 오프닝 · 싱글 · 어드벤처">
+  <div class="wrap">
+    <div class="eyebrow rv">15 — In-Game</div>
+    <h2 class="rv">실제 플레이 화면</h2>
+    <p class="lede rv">낙하 진입 시네마틱부터 완주까지. 전작 <strong>fallingdream</strong>의 낙하 감각이 게임 시작 연출로 이어지는 지점을 눈여겨봐 주세요.</p>
+    <div class="grid g4 stagger">
+      <div><div class="phone" data-video="media/trailer.mp4" data-poster="posters/trailer.jpg"></div><div class="phcap"><b>메인 트레일러</b>프로젝트 종합 영상</div></div>
+      <div><div class="phone" data-video="media/opening.mp4" data-poster="posters/opening.jpg"></div><div class="phcap"><b>오프닝 → 싱글 완주</b>낙하 진입 시네마틱</div></div>
+      <div><div class="phone" data-video="media/single-adventure.mp4" data-poster="posters/single-adventure.jpg"></div><div class="phcap"><b>싱글 · 어드벤처</b>모드 전환 흐름</div></div>
+      <div><div class="phone" data-video="media/storedoor.mp4" data-poster="posters/storedoor.jpg"></div><div class="phcap"><b>매장 입구 연출</b>Store Door</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 11 어드벤처 / UGC ══════════ -->
+<section data-key="ugc" class="vid" data-t="어드벤처 모드 &amp; UGC">
+  <div class="wrap">
+    <div class="eyebrow rv">16 — Adventure &amp; UGC</div>
+    <h2 class="rv">경쟁이 아니라 <em>머무는</em> 모드</h2>
+    <p class="lede rv">레이스만으로는 '체류'를 만들 수 없습니다. 어드벤처 모드는 <strong>대시 게이지를 숨기고 순위 압박을 제거</strong>한 뒤, 포토포즈·프리셋 촬영과 SNS 공유를 전면에 배치했습니다. 매장에서 대기하는 시간에 가장 잘 맞는 모드입니다.</p>
+    <div class="grid g2 stagger" style="gap:24px">
+      <div class="grid g2" style="gap:16px">
+        <div><div class="phone" data-video="media/adventure.mp4" data-poster="posters/adventure.jpg"></div><div class="phcap"><b>어드벤처 플레이</b>부부</div></div>
+        <div><div class="phone" data-video="media/tone.mp4" data-poster="posters/insta-1.jpg"></div><div class="phcap"><b>인스타 스토리</b>브랜드 톤앤매너 기준</div></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px">
+        <div class="card accent">
+          <h3>포토포즈 · 프리셋</h3>
+          <p class="small" style="margin-top:8px">캐릭터 포즈 프리셋과 배경 프레임을 제공해, 조작에 익숙하지 않은 방문객도 <b>몇 번의 탭만으로 화보를 얻게</b> 만들었습니다. 저장·공유 버튼을 촬영 직후 동선에 붙여 업로드까지의 마찰을 없앴습니다.</p>
+          <div class="hr"></div>
+          <div class="chipgrid">
+            <span class="chip">포즈 프리셋</span><span class="chip">캡처 배경</span><span class="chip">알파벳 · 자음 데코</span>
+            <span class="chip">저장 / 공유</span><span class="chip">인스타그램 연동</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>UGC를 전제로 한 화면비</h3>
+          <p class="small" style="margin-top:8px">전 콘텐츠를 <b>1080×1920 세로</b>로 통일했습니다. 촬영본이 그대로 릴스·틱톡 규격이 되도록 하여, 유저가 편집 없이 바로 올릴 수 있게 한 의도적 선택입니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 12 인터랙션 ══════════ -->
+<section data-key="interaction" data-t="★ 오프라인 인터랙션 — 라이브 데모">
+  <div class="wrap">
+    <div class="eyebrow rv">17 — Offline Interaction · Live</div>
+    <h2 class="rv">지금 이 자리에서 <em>직접 실행됩니다</em></h2>
+    <p class="lede rv">기획서상 오프라인 체험존은 두 개의 인터랙션으로 구성됩니다. 아래 두 데모는 <strong>영상이 아니라 실제 동작하는 구현물</strong>이며, 웹캠만 있으면 이 발표 화면에서 바로 실행할 수 있습니다.</p>
+    <div class="grid g2 stagger" style="gap:22px">
+      <div>
+        <div class="demo" data-embed="https://eunseojung422-commits.github.io/face-puppet/">
+          <div class="cover">
+            <span class="tag p">Interaction 01</span>
+            <h4>페이스 트래킹 — 표정 미러링</h4>
+            <p>웹캠으로 얼굴 랜드마크를 실시간 추적해, 내 표정을 게임 캐릭터의 블렌드셰이프로 그대로 옮깁니다.</p>
+            <div class="btnrow" style="justify-content:center">
+              <button class="btn pri" data-run>▶ 여기서 실행</button>
+              <a class="btn" href="https://eunseojung422-commits.github.io/face-puppet/" target="_blank" rel="noopener">새 창 ↗</a>
+            </div>
+            <p class="tiny">카메라 권한 요청이 뜨면 허용해 주세요</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="tags" style="margin-bottom:12px"><span class="tag c">MediaPipe FaceLandmarker</span><span class="tag c">three.js</span><span class="tag c">GLTF Blend Shape</span></div>
+          <p class="small">얼굴의 <b>52개 표정 계수</b>를 추출해 캐릭터 GLB의 블렌드셰이프에 매핑합니다. 눈 깜빡임·미소·턱 벌림·볼 부풀리기·혀 내밀기까지 반영되며, 4종 캐릭터 전부 대응합니다.</p>
+        </div>
+      </div>
+      <div>
+        <div class="demo" data-embed="https://sms940574.github.io/bubble-interaction/Final_Bubble.html">
+          <div class="cover">
+            <span class="tag p">Interaction 02</span>
+            <h4>버블 인터랙션 — 로고를 터뜨린다</h4>
+            <p>FFF의 슬로건 <b>for family and friends</b>가 유리 비눗방울로 부유하고, 손을 뻗어 터뜨릴 수 있습니다.</p>
+            <div class="btnrow" style="justify-content:center">
+              <button class="btn pri" data-run>▶ 여기서 실행</button>
+              <a class="btn" href="https://sms940574.github.io/bubble-interaction/Final_Bubble.html" target="_blank" rel="noopener">새 창 ↗</a>
+            </div>
+            <p class="tiny">손 인식 · 마우스 클릭 모두 지원 — 오프닝 화면의 글자가 바로 이 모델입니다</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="tags" style="margin-bottom:12px"><span class="tag c">MediaPipe HandLandmarker</span><span class="tag c">three.js</span><span class="tag c">Transmission Material</span></div>
+          <p class="small">비눗방울은 <b>투과(transmission) · 굴절(IOR 1.69) · 이리데선스 그라디언트</b>를 조합한 물리 기반 유리 재질입니다. 세계관의 '차갑고 유기적인 질감'을 그대로 웹으로 옮긴 부분입니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ══════════ 14 로드맵 ══════════ -->
+<section data-key="roadmap" data-t="개발 파이프라인 · 8주 로드맵">
+  <div class="wrap">
+    <div class="eyebrow rv">18 — Pipeline &amp; Roadmap</div>
+    <h2 class="rv">그레이박싱을 <em>가장 먼저</em></h2>
+    <p class="lede rv">8주 안에 모바일 멀티플레이와 오프라인 인터랙션을 동시에 완성해야 했습니다. 본 모델링에 들어가기 전에 <strong>회색 박스로 매장 레이아웃을 세우고 런타임에서 직접 돌아다니며</strong> 스케일과 점프·대시 타이밍을 먼저 검증했습니다. 이 순서를 지킨 것이 일정 리스크를 가장 크게 줄인 결정입니다.</p>
+    <div class="steps rv">
+      <div class="step"><div class="si">W1–2</div><div class="sh">Phase 1 · 기획 확정 &amp; 프로토타입</div><div class="sd">메인 캐릭터 휴머노이드 컨트롤러 선행 세팅 · 임시 맵 그레이박싱 · 스케일/동선 런타임 검증 · 캐릭터 및 오브젝트 모델링 착수</div></div>
+      <div class="step"><div class="si">W3–4</div><div class="sh">Phase 2 · 온라인 코어 &amp; 멀티플레이</div><div class="sd">Photon 4인 위치 동기화 · 러닝 코어 로직 · 하프톤 셰이더 및 Grab Pass 글래스모피즘 UI · 쿠폰/DB 백엔드 착수</div></div>
+      <div class="step"><div class="si">W5–6</div><div class="sh">Phase 3 · 인터랙션 구현</div><div class="sd">페이스 랜드마크 트래킹 → 블렌드셰이프 실시간 매핑 · 버블 물리 및 유리 재질 렌더링 · 온·오프라인 쿠폰 연동</div></div>
+      <div class="step"><div class="si">W7</div><div class="sh">Phase 4 · QA &amp; 폴리싱</div><div class="sd">텍스처 압축 · 드로우콜 최적화 · 네트워크 레이턴시 테스트 · 버그 수정</div></div>
+      <div class="step"><div class="si">W8</div><div class="sh">Phase 5 · 최종 빌드 &amp; 시연</div><div class="sd">영상 레코딩 · 인터랙션 배포 · 리허설 및 최종 점검</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 15 팀 ══════════ -->
+<section data-key="team" data-t="팀 구성 및 역할">
+  <div class="wrap">
+    <div class="eyebrow rv">19 — Team</div>
+    <h2 class="rv">4인 · 8주</h2>
+    <p class="lede rv">기획 · 클라이언트 · 인터랙션 · 아트를 나눠 맡되, 그레이박싱 단계에서는 전원이 같은 빌드를 돌려보며 스케일과 재미를 함께 검증했습니다.</p>
+    <div class="grid g4 stagger">
+      <div class="card accent">
+        <span class="tag p">Direction</span>
+        <h3 style="margin:12px 0 10px; font-size:calc(23px * var(--title-scale) * var(--fs-k, 1) * .92)">서미숙</h3>
+        <p class="small">총괄 기획 · 디렉팅 · 아트 디렉팅 · 테크니컬 아트 · 3D 모델링</p>
+        <div class="hr"></div>
+        <p class="tiny">프로젝트 전체 방향과 비주얼 기준 수립, 굿즈 3D 에셋 제작, 일정 및 협업 조율</p>
+      </div>
+      <div class="card">
+        <span class="tag c">Client</span>
+        <h3 style="margin:12px 0 10px; font-size:calc(23px * var(--title-scale) * var(--fs-k, 1) * .92)">위영복</h3>
+        <p class="small">Unity 클라이언트 개발</p>
+        <div class="hr"></div>
+        <p class="tiny">Photon 4인 멀티플레이 환경 구축, 모바일 조작계 설계, URP 셰이더 적용 및 최적화</p>
+      </div>
+      <div class="card">
+        <span class="tag c">Interaction</span>
+        <h3 style="margin:12px 0 10px; font-size:calc(23px * var(--title-scale) * var(--fs-k, 1) * .92)">정은서</h3>
+        <p class="small">인터랙티브 개발</p>
+        <div class="hr"></div>
+        <p class="tiny">오프라인 인터랙션 로직 설계, 페이스 트래킹 · 블렌드셰이프 연동 구현</p>
+      </div>
+      <div class="card">
+        <span class="tag a">Art</span>
+        <h3 style="margin:12px 0 10px; font-size:calc(23px * var(--title-scale) * var(--fs-k, 1) * .92)">정은화</h3>
+        <p class="small">3D 아트 · UI/UX</p>
+        <div class="hr"></div>
+        <p class="tiny">캐릭터 3D 렌더링, 맵 오브젝트 리토폴로지, 인게임 유리 재질 반투명 UI 디자인</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 협업 툴 ══════════ -->
+<section data-key="tools" data-t="협업 툴 · 기술 스택">
+  <div class="wrap">
+    <div class="eyebrow rv">20 — Collaboration Tool</div>
+    <h2 class="rv">쓴 도구</h2>
+    <p class="lede rv">4명이 8주간 같은 빌드를 굴려야 했기 때문에, 형상 관리와 에셋 규격을 프로젝트 첫 주에 먼저 고정했습니다.</p>
+    <div class="grid g4 stagger" style="gap:16px; align-items:stretch">
+      <div class="card">
+        <span class="tag c">Engine · Code</span>
+        <h3 style="margin:14px 0 12px">개발</h3>
+        <div class="chipgrid">
+          <span class="chip">Unity 6.3</span><span class="chip">C#</span><span class="chip">URP</span>
+          <span class="chip">Photon (PUN)</span><span class="chip">Cinemachine</span><span class="chip">Splines</span>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag c">3D · Art</span>
+        <h3 style="margin:14px 0 12px">아트</h3>
+        <div class="chipgrid">
+          <span class="chip">Blender</span><span class="chip">Nomad Sculpt</span><span class="chip">Mixamo</span>
+          <span class="chip">Tripo 3D</span><span class="chip">Rodin</span><span class="chip">Substance</span>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag p">Web · Interaction</span>
+        <h3 style="margin:14px 0 12px">인터랙션</h3>
+        <div class="chipgrid">
+          <span class="chip">three.js</span><span class="chip">MediaPipe</span><span class="chip">WebGL</span>
+          <span class="chip">GitHub Pages</span>
+        </div>
+      </div>
+      <div class="card">
+        <span class="tag a">Collab</span>
+        <h3 style="margin:14px 0 12px">협업</h3>
+        <div class="chipgrid">
+          <span class="chip">GitHub</span><span class="chip">Notion</span><span class="chip">Figma</span>
+          <span class="chip">KakaoTalk</span>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2 stagger" style="margin-top:18px; gap:20px">
+      <div class="card cy">
+        <h3>충돌을 구조로 막았다</h3>
+        <ul class="dash" style="margin-top:12px">
+          <li><b>씬 분리</b> — Lobby / Race / Adventure / Multiplay 를 나눠 동시 작업 시 병합 충돌 최소화</li>
+          <li><b>애니메이션 규격 통일</b> — 전 캐릭터 Unity 휴머노이드로 리타게팅해 클립 공유</li>
+          <li><b>에셋 네이밍 규칙</b> — 굿즈 51종을 이름만 보고 찾을 수 있게 정리</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>에셋 파이프라인</h3>
+        <p class="small" style="margin-top:8px">Blender · Nomad Sculpt 제작 → 리토폴로지 → FBX / GLB 익스포트 → <b>Unity 인게임</b>과 <b>웹 인터랙션</b> 양쪽에 임포트. 웹으로 보낼 때는 블렌드셰이프·스키닝을 걷어내고 텍스처를 축소하는 경량화 단계를 따로 뒀습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 16 확장성 ══════════ -->
+<section data-key="impact" data-t="기대 효과 &amp; 확장성">
+  <div class="wrap">
+    <div class="eyebrow rv">21 — Impact &amp; Scalability</div>
+    <h2 class="rv">한 번 만들고 <span class="g">계속 쓴다</span></h2>
+    <p class="lede rv">코어 멀티플레이 시스템과 인터랙션 로직을 모듈화했기 때문에, 맵 구조와 제품 텍스처만 교체하면 다른 브랜드·팝업·전시로 즉시 확장됩니다. 일회성 이벤트가 아니라 <strong>플랫폼</strong>으로 설계된 이유입니다.</p>
+    <div class="grid g3 stagger">
+      <div class="card cy"><span class="tag c">Business</span><h3 style="margin:12px 0 10px">체류 시간 연장</h3><p class="small">경쟁 심리와 인터랙티브 체험이 겹치면서 평균 체류 시간이 늘고, 이는 추가 소비로 직결됩니다.</p></div>
+      <div class="card accent"><span class="tag p">Brand</span><h3 style="margin:12px 0 10px">대체 불가능한 정체성</h3><p class="small">'편집샵'이 아니라 '인터랙티브 미디어와 서브컬처가 결합된 놀이 공간'으로 재정의됩니다.</p></div>
+      <div class="card cy"><span class="tag c">Platform</span><h3 style="margin:12px 0 10px">B2B 확장 기반</h3><p class="small">스킨과 에셋 교체만으로 타 브랜드 팝업·아티스트 전시에 적용 가능한 모듈 구조.</p></div>
+    </div>
+    <div class="grid g2 stagger" style="margin-top:18px; gap:20px">
+      <div class="card">
+        <h3>LiveOps — 지속 업데이트</h3>
+        <ul class="dash" style="margin-top:12px">
+          <li><b>시즌 테마</b> — SS/FW, 할로윈, 크리스마스에 맞춰 셰이더·조명 교체</li>
+          <li><b>신규 캐릭터</b> — 3D 모델 추가로 접속 동기 유지</li>
+          <li><b>IP 테스트베드</b> — Don't Wake Up 본편의 신규 기믹을 미니게임으로 선공개</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>리스크 대응</h3>
+        <ul class="dash" style="margin-top:12px">
+          <li><b>서버 지연</b> — 접속 불가 시 싱글 플레이 모드로 자동 전환</li>
+          <li><b>체험존 병목</b> — 웹 기반이라 동시 다중 체험 가능, 대기열 자체를 완화</li>
+          <li><b>결제/QR 오류</b> — 직원 수기 인증용 비상 프로모션 코드 발급 메뉴</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 17 END ══════════ -->
+<section data-key="end" id="end" data-t="마무리">
+  <div class="wrap" style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:22px">
+    <div class="endmark rv"></div>
+    <div class="endtitle rv">기술 · 공간 · <span>놀이</span></div>
+    <p class="lede rv" style="text-align:center; max-width:58ch; margin-bottom:0">RRR은 게임 IP가 브랜드 공간으로 확장될 때 경험이 어디까지 갈 수 있는지를 확인한 프로젝트였습니다. 전작의 캐릭터를 이어받아, 매장을 맵으로 만들고, 방문객을 플레이어로 만들었습니다.</p>
+    <div class="btnrow rv" style="justify-content:center">
+      <a class="btn sec" href="https://eunseojung422-commits.github.io/face-puppet/" target="_blank" rel="noopener">페이스 트래킹 체험 ↗</a>
+      <a class="btn pri" href="https://sms940574.github.io/bubble-interaction/Final_Bubble.html" target="_blank" rel="noopener">버블 인터랙션 체험 ↗</a>
+    </div>
+    <p class="tiny rv">서미숙 · 위영복 · 정은서 · 정은화 &nbsp;|&nbsp; Unity 6.3 · Photon · MediaPipe · three.js &nbsp;|&nbsp; 8 Weeks</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ── 로컬 서버에 파일 저장 ── */
+window.__saveFile = function(file, content){
+  return fetch('__save', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ file:file, content:content })
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(j){
+      if (!r.ok || !j.ok) throw new Error((j && j.error) || ('HTTP ' + r.status));
+      return j;
+    });
+  });
+};
+window.__download = function(name, text, mime){
+  var b = new Blob([text], {type: mime || 'text/plain;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+};
+window.__flash = function(btn, msg, ok){
+  var old = btn.textContent, bg = btn.style.background;
+  btn.textContent = msg;
+  btn.style.background = ok ? '#3f9c7f' : '#c0392b';
+  btn.style.color = '#fff';
+  setTimeout(function(){ btn.textContent = old; btn.style.background = bg; btn.style.color = ''; }, 1800);
+};
+
+(function(){
+  'use strict';
+  var CFG = window.설정 || {};
+
+  /* ═════════ 오프닝 문구를 settings.js 에서 ═════════ */
+  var O = CFG.오프닝 || {};
+  function setHTML(id, v){ var e = document.getElementById(id); if (e && v != null) e.innerHTML = v; }
+  setHTML('heroKicker', O.윗줄); setHTML('heroLine', O.설명); setHTML('heroHint', O.안내);
+  setHTML('heroTeam', O.팀);     setHTML('heroEngine', O.엔진); setHTML('heroPeriod', O.기간);
+
+  var deck = document.getElementById('deck');
+  var sections = Array.prototype.slice.call(deck.querySelectorAll('section'));
+
+  /* ═════════ 편집 대상 ═════════ */
+  var EDITABLE = 'h2,h3,h4,.lede,.small,.tiny,.dash li,td,th,.tag,.chip,.sh,.sd,.si,'
+               + '.phcap,.kv .k,.kv .v,.eyebrow,.hero-kicker,.hero-line,.pophint,'
+               + '.endtitle,.demo .cover p,.tab,.hero-meta span,.num,.btn,.phcap b';
+  /* 통째로 지우거나 복제할 수 있는 덩어리 */
+  var BLOCKS = '.card,.chip,.tag,.step,.cmp tbody tr,.dash li,.grid>div,.tab,.phone,'
+             + '.demo,.kv,.btn,.phcap,.num,h2,h3,h4,.lede,.small,.tiny,.eyebrow,'
+             + '.hero-meta span,.hero-line,.hero-kicker,.pophint,.endtitle,'
+             + '.tags,.chipgrid,.steps,.tabs,table.cmp,.grid,.wrap>*';
+
+  /* ═════════ 저장/복원 ═════════ */
+  var KEY = 'rrr-deck-edits-v4';
+  var containers = new Map();       // key -> element
+  sections.forEach(function(s, i){
+    var w = s.querySelector('.wrap');
+    if (w) containers.set(s.dataset.key || ('s' + i), w);
+  });
+  ['hero-top', 'hero-copy', 'hero-meta'].forEach(function(cls){
+    var e = document.querySelector('.' + cls);
+    if (e) containers.set(cls, e);
+  });
+
+  var demoOrig = [];
+  document.querySelectorAll('.demo[data-embed]').forEach(function(d, i){
+    d.setAttribute('data-demo', i);
+    demoOrig[i] = d.innerHTML;
+  });
+
+  function snapshot(){
+    var out = {};
+    containers.forEach(function(el, k){
+      var c = el.cloneNode(true);
+      c.querySelectorAll('.ph-poster, video, .ed-badge, .fsbtn').forEach(function(n){ n.remove(); });
+      c.querySelectorAll('[data-demo]').forEach(function(n){
+        var i = n.getAttribute('data-demo');
+        if (demoOrig[i] != null) n.innerHTML = demoOrig[i];
+      });
+      c.querySelectorAll('[contenteditable]').forEach(function(n){ n.removeAttribute('contenteditable'); });
+      c.querySelectorAll('[spellcheck]').forEach(function(n){ n.removeAttribute('spellcheck'); });
+      c.querySelectorAll('[data-ed]').forEach(function(n){ n.removeAttribute('data-ed'); });
+      /* 문단(p) 안에 들어간 div, 문단 뒤로 튕겨나간 div 를 <br> 로 되돌린다.
+         이걸 안 하면 다시 열 때 문단이 두 동강 난다. */
+      c.querySelectorAll('p, span, b, strong, em, i, a').forEach(function(el){
+        el.querySelectorAll('div').forEach(function(dv){
+          dv.parentNode.insertBefore(document.createElement('br'), dv);
+          while (dv.firstChild) dv.parentNode.insertBefore(dv.firstChild, dv);
+          dv.remove();
+        });
+      });
+      c.querySelectorAll('p.lede, p.small, p.tiny').forEach(function(pp){
+        var nx = pp.nextElementSibling;
+        while (nx && nx.tagName === 'DIV' && !nx.className){
+          var gone = nx; nx = nx.nextElementSibling;
+          pp.appendChild(document.createElement('br'));
+          while (gone.firstChild) pp.appendChild(gone.firstChild);
+          gone.remove();
+        }
+      });
+      out[k] = c.innerHTML;
+    });
+    return out;
+  }
+  function restore(map){
+    if (!map) return;
+    Object.keys(map).forEach(function(k){
+      var el = containers.get(k);
+      if (el && typeof map[k] === 'string') el.innerHTML = map[k];
+    });
+    mountPosters();
+    if (window.__fsButtons) window.__fsButtons();
+    if (window.__fitVid) setTimeout(window.__fitVid, 60);
+    if (document.body.classList.contains('editing')) markEditable(true);
+  }
+  var base = snapshot();
+
+  var saveTimer = null;
+  function autosave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try { localStorage.setItem(KEY, JSON.stringify({ ts: Date.now(), html: snapshot() })); } catch(e){}
+    }, 400);
+  }
+
+  function localDraft(){
+    try { return JSON.parse(localStorage.getItem(KEY)); } catch(e){ return null; }
+  }
+  fetch('content.json', {cache:'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      var fileTs = (j && j.ts) || 0;
+      if (j && j.__v === 2) restore(j.html);
+      var t = localDraft();
+      if (!t) return;
+      /* 브라우저에 남은 편집분은 파일보다 새로울 때만 덮어쓴다.
+         (파일을 나중에 고쳤는데 옛 편집분이 되살아나는 문제 방지) */
+      var draftTs = t.ts || 0, html = t.html || t;
+      if (draftTs > fileTs) restore(html);
+      else localStorage.removeItem(KEY);
+    })
+    .catch(function(){
+      var t = localDraft();
+      if (t) restore(t.html || t);
+    });
+
+  /* ═════════ 편집 모드 ═════════ */
+  function markEditable(on){
+    var eds = [];
+    document.querySelectorAll(EDITABLE).forEach(function(el){
+      if (el.closest('#editbar') || el.closest('#tunepanel') || el.closest('#edtool')) return;
+      for (var i = 0; i < eds.length; i++) if (eds[i].contains(el)) return;   // 중첩 방지
+      eds.push(el);
+    });
+    document.querySelectorAll('[data-ed]').forEach(function(n){ n.removeAttribute('data-ed'); });
+    eds.forEach(function(el, i){
+      el.setAttribute('data-ed', i);
+      if (on){ el.setAttribute('contenteditable', 'true'); el.setAttribute('spellcheck', 'false'); }
+      else el.removeAttribute('contenteditable');
+    });
+    if (!on) document.querySelectorAll('[data-ed]').forEach(function(n){ n.removeAttribute('data-ed'); });
+  }
+  function setEditing(on){
+    if (on){ try { document.execCommand('defaultParagraphSeparator', false, 'br'); } catch(e){} }
+    document.body.classList.toggle('editing', on);
+    markEditable(on);
+    if (!on) hideTool();
+  }
+
+  document.addEventListener('input', function(e){
+    if (document.body.classList.contains('editing') && e.target.closest('[data-ed]')) autosave();
+  });
+  /* 편집 중 링크 클릭 방지 */
+  document.addEventListener('click', function(e){
+    if (!document.body.classList.contains('editing')) return;
+    var a = e.target.closest('a');
+    if (a) e.preventDefault();
+  }, true);
+
+  /* ── 블록 도구: 선택 · 이동 · 크기 · 삭제 ── */
+  var tool = document.createElement('div');
+  tool.id = 'edtool';
+  tool.innerHTML =
+    '<button data-t="up"    title="바깥 박스 선택">⬆ 바깥</button>' +
+    '<span class="ed-sep"></span>' +
+    '<button data-t="minus" title="글씨 작게">A−</button>' +
+    '<input  data-t="fs" type="number" min="8" max="200" step="1" title="글씨 크기(px) — 직접 입력 가능">' +
+    '<span class="ed-unit">px</span>' +
+    '<button data-t="plus"  title="글씨 크게">A+</button>' +
+    '<span class="ed-sep"></span>' +
+    '<button data-t="move"  title="끌어서 위치 옮기기">✥ 이동</button>' +
+    '<button data-t="dup"   title="바로 아래 복제">복제</button>' +
+    '<button data-t="reset" title="크기·위치·글씨크기 초기화">↺</button>' +
+    '<button data-t="del"   title="삭제">삭제</button>' +
+    '<span class="ed-dim"></span>';
+  document.body.appendChild(tool);
+
+  var handle = document.createElement('div');
+  handle.id = 'edresize';
+  handle.title = '끌어서 박스 크기 조절';
+  document.body.appendChild(handle);
+
+  var cur = null, locked = false;
+  var undoStack = [];
+
+  function inContainer(el){
+    if (!el) return false;
+    var ok = false;
+    containers.forEach(function(c){ if (c !== el && c.contains(el)) ok = true; });
+    return ok;
+  }
+  /* ── 글씨 크기: 안쪽 글씨까지 함께 조절 ──
+     카드·표·항목 묶음처럼 자기 텍스트가 없는 박스는 배율(--fs-k)로,
+     직접 글씨가 있는 요소는 배율 + 실제 px 로 조절한다. */
+  function textOwner(el){
+    for (var i = 0; i < el.childNodes.length; i++){
+      var n = el.childNodes[i];
+      if (n.nodeType === 3 && n.textContent.trim()) return el;
+    }
+    var all = el.querySelectorAll('*');
+    for (var a = 0; a < all.length; a++){
+      var e = all[a];
+      for (var j = 0; j < e.childNodes.length; j++){
+        var c = e.childNodes[j];
+        if (c.nodeType === 3 && c.textContent.trim()) return e;
+      }
+    }
+    return el;
+  }
+  function fontPx(el){
+    return Math.round(parseFloat(getComputedStyle(textOwner(el)).fontSize) || 16);
+  }
+  function setFontPx(el, px){
+    var now = parseFloat(getComputedStyle(textOwner(el)).fontSize) || 16;
+    px = Math.max(8, Math.min(200, px));
+    if (!now) return;
+    var k = parseFloat(el.style.getPropertyValue('--fs-k')) || 1;
+    el.style.setProperty('--fs-k', (k * (px / now)).toFixed(4));
+    if (textOwner(el) === el) el.style.fontSize = px + 'px';
+  }
+
+  var SNAP = 8;                       // 스냅 간격(px). Alt 누르면 해제
+  function snapv(v, e){ return (e && e.altKey) ? Math.round(v) : Math.round(v / SNAP) * SNAP; }
+  function syncTool(){
+    if (!cur) return;
+    var fs = tool.querySelector('[data-t="fs"]');
+    if (fs && document.activeElement !== fs){
+      fs.value = fontPx(cur);
+    }
+    var d = tool.querySelector('.ed-dim');
+    if (d){
+      var r = cur.getBoundingClientRect();
+      d.textContent = Math.round(r.width) + ' × ' + Math.round(r.height);
+    }
+  }
+  function place(){
+    if (!cur){ tool.style.display = 'none'; handle.style.display = 'none'; return; }
+    var r = cur.getBoundingClientRect();
+    syncTool();
+    tool.style.display = 'flex';
+    var tw = tool.offsetWidth || 300;
+    tool.style.left = Math.max(6, Math.min(window.innerWidth - tw - 6, r.left)) + 'px';
+    tool.style.top  = Math.max(60, r.top - 32) + 'px';
+    handle.style.display = 'block';
+    handle.style.left = (r.right - 7) + 'px';
+    handle.style.top  = (r.bottom - 7) + 'px';
+  }
+  function select(el, lock){
+    if (!el) return;
+    cur = el;
+    if (lock) locked = true;
+    document.querySelectorAll('.ed-hot').forEach(function(n){ n.classList.remove('ed-hot'); });
+    el.classList.add('ed-hot');
+    place();
+  }
+  function hideTool(){
+    tool.style.display = 'none';
+    handle.style.display = 'none';
+    document.querySelectorAll('.ed-hot').forEach(function(n){ n.classList.remove('ed-hot'); });
+    cur = null; locked = false;
+  }
+
+  document.addEventListener('mouseover', function(e){
+    if (!document.body.classList.contains('editing')) return;
+    if (locked) return;
+    if (e.target.closest('#edtool') || e.target.closest('#edresize') || e.target.closest('#editbar')) return;
+    var b = e.target.closest(BLOCKS);
+    if (b && b !== cur) select(b, false);
+  });
+  /* 빈 곳을 클릭하면 잠금 해제 */
+  document.addEventListener('mousedown', function(e){
+    if (!document.body.classList.contains('editing')) return;
+    if (e.target.closest('#edtool') || e.target.closest('#edresize')) return;
+    if (cur && !cur.contains(e.target)) locked = false;
+  });
+  deck.addEventListener('scroll', place);
+  window.addEventListener('resize', place);
+
+  tool.addEventListener('mousedown', function(e){
+    if (e.target.closest('[data-t="move"]') || e.target.tagName === 'INPUT') return;
+    e.preventDefault();
+  });
+  tool.addEventListener('input', function(e){
+    var f = e.target.closest('[data-t="fs"]'); if (!f || !cur) return;
+    var v = parseFloat(f.value);
+    if (!v) return;
+    setFontPx(cur, v);
+    autosave();
+  });
+  tool.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b || !cur) return;
+    var act = b.dataset.t;
+    if (act === 'up'){
+      var p = cur.parentElement;
+      if (p && inContainer(p)) select(p, true);
+      return;
+    }
+    if (act === 'del'){
+      undoStack.push({ node: cur, parent: cur.parentNode, next: cur.nextSibling });
+      cur.remove(); hideTool(); autosave(); return;
+    }
+    if (act === 'dup'){
+      var c = cur.cloneNode(true);
+      c.classList.remove('ed-hot');
+      cur.parentNode.insertBefore(c, cur.nextSibling);
+      markEditable(true); autosave(); place(); return;
+    }
+    if (act === 'reset'){
+      cur.style.fontSize = ''; cur.style.width = ''; cur.style.height = ''; cur.style.minHeight = '';
+      cur.style.removeProperty('--fs-k');
+      cur.style.maxWidth = ''; cur.style.minWidth = '';
+      cur.style.left = ''; cur.style.top = ''; cur.style.position = '';
+      autosave(); place(); return;
+    }
+    if (act === 'plus' || act === 'minus'){
+      var now = fontPx(cur);
+      var step = Math.max(1, Math.round(now * 0.08));
+      setFontPx(cur, now + (act === 'plus' ? step : -step));
+      autosave(); place(); return;
+    }
+  });
+
+  /* ── 끌어서 이동 ── */
+  (function(){
+    var moveBtn = tool.querySelector('[data-t="move"]');
+    var sx = 0, sy = 0, ox = 0, oy = 0, target = null;
+    moveBtn.addEventListener('pointerdown', function(e){
+      if (!cur) return;
+      e.preventDefault();
+      target = cur; locked = true;
+      if (getComputedStyle(target).position === 'static') target.style.position = 'relative';
+      sx = e.clientX; sy = e.clientY;
+      ox = parseFloat(target.style.left) || 0;
+      oy = parseFloat(target.style.top) || 0;
+      moveBtn.setPointerCapture(e.pointerId);
+      document.body.classList.add('ed-dragging');
+    });
+    moveBtn.addEventListener('pointermove', function(e){
+      if (!target) return;
+      target.style.left = snapv(ox + e.clientX - sx, e) + 'px';
+      target.style.top  = snapv(oy + e.clientY - sy, e) + 'px';
+      place();
+    });
+    moveBtn.addEventListener('pointerup', function(){
+      if (!target) return;
+      target = null; document.body.classList.remove('ed-dragging'); autosave();
+    });
+  })();
+
+  /* ── 끌어서 크기 조절 ── */
+  (function(){
+    var sx = 0, sy = 0, w0 = 0, h0 = 0, target = null;
+    handle.addEventListener('pointerdown', function(e){
+      if (!cur) return;
+      e.preventDefault();
+      target = cur; locked = true;
+      var r = target.getBoundingClientRect();
+      sx = e.clientX; sy = e.clientY; w0 = r.width; h0 = r.height;
+      target.style.maxWidth = 'none';        // .lede 등에 걸린 max-width 해제
+      target.style.minWidth = '0';
+      handle.setPointerCapture(e.pointerId);
+      document.body.classList.add('ed-dragging');
+    });
+    handle.addEventListener('pointermove', function(e){
+      if (!target) return;
+      var w = Math.max(40, snapv(w0 + e.clientX - sx, e));
+      var h = Math.max(24, snapv(h0 + e.clientY - sy, e));
+      target.style.width = w + 'px';
+      /* height 를 고정하면 글씨가 늘었을 때 박스를 넘쳐 겹친다 → 최소높이로 */
+      if (Math.abs(e.clientY - sy) > 6){ target.style.height = ''; target.style.minHeight = h + 'px'; }
+      place();
+    });
+    handle.addEventListener('pointerup', function(){
+      if (!target) return;
+      target = null; document.body.classList.remove('ed-dragging'); autosave();
+    });
+  })();
+
+  function undo(){
+    var last = undoStack.pop();
+    if (!last) return;
+    if (last.next && last.next.parentNode === last.parent) last.parent.insertBefore(last.node, last.next);
+    else last.parent.appendChild(last.node);
+    markEditable(true); autosave();
+  }
+
+  /* ── 편집 막대 ── */
+  document.getElementById('editbar').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    var act = b.dataset.act;
+    if (act === 'close') setEditing(false);
+    if (act === 'undo') undo();
+    if (act === 'tidy'){
+      if (!confirm('글씨 내용은 그대로 두고,\n크기·위치·이동만 원래대로 돌립니다.\n\n계속할까요?')) return;
+      var n = 0;
+      containers.forEach(function(c){
+        c.querySelectorAll('[style]').forEach(function(el){
+          var st = el.style;
+          if (st.width || st.height || st.minHeight || st.maxWidth || st.minWidth || st.left || st.top || st.position){
+            st.width = ''; st.height = ''; st.minHeight = ''; st.maxWidth = ''; st.minWidth = '';
+            st.left = ''; st.top = ''; st.position = '';
+            n++;
+          }
+        });
+      });
+      hideTool(); autosave();
+      alert(n + '개 박스의 크기·위치를 정리했습니다.\n글씨 크기는 그대로 두었습니다.');
+      return;
+    }
+    if (act === 'reset'){
+      if (!confirm('고친 내용을 모두 처음 상태로 되돌립니다. 계속할까요?')) return;
+      localStorage.removeItem(KEY);
+      restore(base);
+      undoStack.length = 0;
+      markEditable(document.body.classList.contains('editing'));
+    }
+    if (act === 'save'){
+      var txt = JSON.stringify({ __v: 2, ts: Date.now(), html: snapshot() }, null, 1);
+      window.__saveFile('content.json', txt).then(function(){
+        localStorage.removeItem(KEY);
+        window.__flash(b, '저장됨 ✓', true);
+      }).catch(function(err){
+        window.__download('content.json', txt, 'application/json');
+        window.__flash(b, '파일로 내려받음', false);
+        alert('자동 저장이 안 돼서 파일로 내려받았습니다.\n(' + err.message + ')\n\n다운로드 폴더의 content.json 을\nindex.html 이 있는 "발표웹" 폴더에 넣어 주세요.');
+      });
+    }
+  });
+
+  /* ═════════ 사진 한 장씩 크게 보기 ═════════ */
+  var lb = document.createElement('div');
+  lb.id = 'lightbox';
+  lb.innerHTML = '<div class="lb-n"></div><img alt=""><div class="lb-cap"></div>'
+               + '<div class="lb-hint">Space 다음 사진 · ↑ 이전 · Esc 닫기</div>';
+  document.body.appendChild(lb);
+  var lbList = [], lbIdx = -1;
+
+  function lbFigures(sec){
+    return sec ? Array.prototype.slice.call(sec.querySelectorAll('.tonegrid .tone')) : [];
+  }
+  function lbShow(i){
+    var fig = lbList[i]; if (!fig) return;
+    var img = fig.querySelector('img'); if (!img) return;
+    lbIdx = i;
+    lb.querySelector('img').src = img.getAttribute('src');
+    var cap = fig.querySelector('figcaption');
+    lb.querySelector('.lb-cap').textContent = cap ? cap.textContent.trim() : (img.alt || '');
+    lb.querySelector('.lb-n').textContent = (i + 1) + ' / ' + lbList.length;
+    document.body.classList.add('lb-on');
+  }
+  function lbClose(){ document.body.classList.remove('lb-on'); lbIdx = -1; lbList = []; }
+  lb.addEventListener('click', function(){
+    if (lbIdx >= 0 && lbIdx < lbList.length - 1) lbShow(lbIdx + 1); else lbClose();
+  });
+  window.__lb = { open:function(sec){ var f=lbFigures(sec); if(f.length){ lbList=f; lbShow(0); } },
+                  close:lbClose, get idx(){ return lbIdx; } };
+
+  /* ═════════ 슬라이드 ═════════ */
+  var dotsBox  = document.getElementById('dots');
+  var counter  = document.getElementById('counter');
+  var secname  = document.getElementById('secname');
+  var progress = document.getElementById('progress');
+  var current  = 0;
+
+  sections.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.setAttribute('data-t', (i < 10 ? '0' : '') + i + '  ' + (s.dataset.t || ''));
+    b.addEventListener('click', function(){ if (window.__lb) window.__lb.close(); go(i); });
+    dotsBox.appendChild(b);
+  });
+  var dots = Array.prototype.slice.call(dotsBox.children);
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function setActive(i){
+    current = i;
+    dots.forEach(function(d, k){ d.classList.toggle('on', k === i); });
+    counter.innerHTML = '<b>' + pad(i + 1) + '</b> / ' + pad(sections.length);
+    secname.textContent = sections[i].dataset.t || '';
+    progress.style.width = (i / (sections.length - 1) * 100) + '%';
+  }
+  function go(i){
+    i = Math.max(0, Math.min(sections.length - 1, i));
+    sections[i].scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  window.__deckGo = go;
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      var idx = sections.indexOf(e.target);
+      if (e.isIntersecting && e.intersectionRatio > 0.5){
+        e.target.classList.add('live'); setActive(idx); playIn(e.target);
+      } else if (!e.isIntersecting) pauseIn(e.target);
+    });
+  }, {threshold:[0, 0.5, 0.9]});
+  sections.forEach(function(s){ io.observe(s); });
+  sections[0].classList.add('live'); setActive(0);
+
+  document.addEventListener('keydown', function(e){
+    if (e.target.tagName === 'IFRAME' || e.target.tagName === 'INPUT') return;
+    if (document.body.classList.contains('editing')){
+      if (e.key === 'Escape') setEditing(false);
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')){ e.preventDefault(); undo(); }
+      if (e.key === 'Delete' && cur && !cur.isContentEditable){
+        undoStack.push({ node: cur, parent: cur.parentNode, next: cur.nextSibling });
+        cur.remove(); hideTool(); autosave();
+      }
+      return;
+    }
+    var k = e.key;
+    if (k === 'Escape' && document.body.classList.contains('lb-on')){ e.preventDefault(); lbClose(); return; }
+    if (k === ' ' || k === 'PageDown' || k === 'ArrowDown' || k === 'ArrowRight'){
+      e.preventDefault();
+      var figs = lbFigures(sections[current]);
+      if (figs.length){
+        if (lbIdx < 0){ lbList = figs; lbShow(0); return; }          // 전체 → 첫 장
+        if (lbIdx < lbList.length - 1){ lbShow(lbIdx + 1); return; } // 다음 장
+        lbClose();                                                   // 마지막 → 다음 슬라이드
+      }
+      go(current + 1);
+    }
+    else if (k === 'PageUp' || k === 'ArrowUp' || k === 'ArrowLeft'){
+      e.preventDefault();
+      if (lbIdx > 0){ lbShow(lbIdx - 1); return; }
+      if (lbIdx === 0){ lbClose(); return; }                         // 첫 장 → 전체로
+      go(current - 1);
+    }
+    else if (k === 'Home'){ e.preventDefault(); go(0); }
+    else if (k === 'End'){ e.preventDefault(); go(sections.length - 1); }
+    else if (k === 'f' || k === 'F'){
+      if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen();
+    }
+    else if (k === 'e' || k === 'E'){ setEditing(true); }
+  });
+
+  /* ═════════ 영상 ═════════ */
+  function mountPosters(){
+    document.querySelectorAll('.phone[data-video], .filmbox[data-video]').forEach(function(ph){
+      if (ph.querySelector('.ph-poster')) return;
+      var poster = document.createElement('div');
+      poster.className = 'ph-poster';
+      poster.style.backgroundImage = 'url("' + ph.dataset.poster + '")';
+      poster.innerHTML = '<div class="playbtn"></div>';
+      ph.appendChild(poster);
+    });
+  }
+  mountPosters();
+
+  document.addEventListener('click', function(e){
+    if (document.body.classList.contains('editing')) return;
+    var p = e.target.closest('.ph-poster');
+    if (p) mount(p.parentElement, true);
+  });
+
+  function mount(ph, focus){
+    if (!ph || !ph.dataset.video) return;
+    var v = ph.querySelector('video');
+    if (!v){
+      v = document.createElement('video');
+      v.src = ph.dataset.video;
+      v.playsInline = true; v.loop = true; v.muted = true; v.preload = 'auto';
+      v.setAttribute('playsinline', '');
+      ph.insertBefore(v, ph.firstChild);
+    }
+    if (focus){
+      var p = ph.querySelector('.ph-poster');
+      if (p) p.classList.add('gone');
+      v.muted = false; v.controls = true; v.currentTime = 0;
+    }
+    var pr = v.play();
+    if (pr && pr.then) pr.then(function(){
+      if (!focus){ var q = ph.querySelector('.ph-poster'); if (q) q.classList.add('previewing'); }
+    }).catch(function(){});
+    return v;
+  }
+
+  /* 전체화면 버튼 — 소리까지 들으려면 이걸로 */
+  function addFsButtons(){
+    document.querySelectorAll('.filmbox[data-video], .phone[data-video]').forEach(function(box){
+      var old = box.querySelector('.fsbtn');
+      if (old) old.remove();            // 저장본에 굳어버린 껍데기 제거
+      var b = document.createElement('button');
+      b.className = 'fsbtn'; b.type = 'button';
+      b.textContent = '⛶ 전체화면';
+      b.title = '전체화면으로 재생 (소리 켜짐)';
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        var v = mount(box, true);
+        var el = v || box;
+        var go = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen;
+        if (go) { try { go.call(el); } catch(err){} }
+      });
+      box.appendChild(b);
+    });
+  }
+  window.__fsButtons = addFsButtons;
+  addFsButtons();
+  function playIn(sec){
+    if (document.body.classList.contains('editing')) return;
+    sec.querySelectorAll('.phone[data-video], .filmbox[data-video]').forEach(function(ph, i){
+      setTimeout(function(){ mount(ph, false); }, i * 120);
+    });
+  }
+  function pauseIn(sec){ sec.querySelectorAll('video').forEach(function(v){ v.pause(); }); }
+
+  /* ═════════ 영상 슬라이드 한 화면 맞춤 ═════════ */
+  function fitVid(){
+    document.querySelectorAll('#deck section').forEach(function(sec){
+      if (sec.id === 'hero') return;
+      var w = sec.querySelector('.wrap'); if (!w) return;
+      w.style.transform = ''; w.style.height = '';
+      var cs = getComputedStyle(sec);
+      // 섹션이 이미 늘어났을 수 있으므로 '화면 높이' 기준으로 계산
+      var avail = window.innerHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var need  = w.scrollHeight;
+      if (need > avail + 1){
+        var k = Math.max(0.74, avail / need);
+        w.style.transform = 'scale(' + k.toFixed(3) + ')';
+        w.style.height = Math.round(need * k) + 'px';
+      }
+    });
+  }
+  window.__fitVid = fitVid;
+  addEventListener('resize', fitVid);
+  addEventListener('load', fitVid);
+  setTimeout(fitVid, 300);
+  setTimeout(fitVid, 1200);
+
+  /* ═════════ 탭 · 라이브 데모 (위임) ═════════ */
+  document.addEventListener('click', function(e){
+    if (document.body.classList.contains('editing')) return;
+    var t = e.target.closest('.tab');
+    if (t){
+      var box = t.closest('[data-tabs]'); if (!box) return;
+      var host = box.parentElement;
+      box.querySelectorAll('.tab').forEach(function(x){ x.classList.toggle('on', x === t); });
+      host.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', p.dataset.pane === t.dataset.p); });
+      return;
+    }
+    var run = e.target.closest('[data-run]');
+    if (run){
+      var d = run.closest('.demo[data-embed]'); if (!d) return;
+      var f = document.createElement('iframe');
+      f.src = d.dataset.embed;
+      f.allow = 'camera; microphone; autoplay; fullscreen; xr-spatial-tracking';
+      f.setAttribute('allowfullscreen', '');
+      d.innerHTML = ''; d.appendChild(f);
+    }
+  });
+})();
+</script>
+
+<!-- ══════════ 오프닝 버블 (실제 bubble.glb) ══════════ -->
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ══════════ 설정 ══════════ */
+const S    = window.설정 || {};
+const MAIN = (S.색상 || {}).메인 || '#488E7D';
+const TUNE_KEY = 'rrr-hero-tune';
+
+const CHARS = ['ringring', 'bubu', 'popo', 'pipi'];
+const LABEL = { ringring:'링링', bubu:'부부', popo:'포포', pipi:'피피' };
+
+const DEF = {
+  로고:   { 크기:1.00, 가로:0, 세로:0.55, 깊이:4.2, 각도X:0, 각도Y:0, 각도Z:0,
+            색:'', 투명도:1.0, 흔들림:1.0 },
+  캐릭터: { 목록:['ringring','bubu','popo','pipi'],
+            크기:1.00, 가로간격:1.00, 세로:-1.30, 깊이:-3.0,
+            채도:1.75, 흔들림:1.0, 각도:0, 개별:[] }
+};
+function merge(base, over){
+  const out = JSON.parse(JSON.stringify(base));
+  for (const g of Object.keys(base)) Object.assign(out[g], (over && over[g]) || {});
+  return out;
+}
+let ST = merge(DEF, S);
+try { const t = JSON.parse(localStorage.getItem(TUNE_KEY)); if (t) ST = merge(ST, t); } catch(e){}
+/* 예전 설정(개수만 있던 버전) 호환 */
+if (!Array.isArray(ST.캐릭터.목록) || !ST.캐릭터.목록.length){
+  const n = Math.max(1, Math.min(12, Math.round(ST.캐릭터.개수 || 4)));
+  ST.캐릭터.목록 = Array.from({length:n}, (_, i) => CHARS[i % CHARS.length]);
+}
+ST.캐릭터.목록 = ST.캐릭터.목록.filter(n => CHARS.indexOf(n) !== -1);
+if (!ST.캐릭터.목록.length) ST.캐릭터.목록 = ['ringring'];
+delete ST.캐릭터.개수;
+function saveTune(){ try { localStorage.setItem(TUNE_KEY, JSON.stringify(ST)); } catch(e){} }
+
+/* ══════════ 렌더러 ══════════ */
+const canvas = document.getElementById('bubbles');
+const hero   = document.getElementById('hero');
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+camera.position.set(0, 0, 14);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const key  = new THREE.DirectionalLight(0xffffff, 1.35); key.position.set(3, 6, 8);   scene.add(key);
+const fill = new THREE.DirectionalLight(0xdfeee8, 0.55); fill.position.set(-5, -1, 5); scene.add(fill);
+
+const D2R = Math.PI / 180;
+function halfHeightAt(z){ return (camera.position.z - z) * Math.tan(20 * D2R); }
+
+/* ══════════ 캐릭터 ══════════ */
+const protos = {};
+const stand = [];
+const loader = new GLTFLoader();
+let ready = 0;
+
+function saturateMat(mat, amount){
+  if (!mat || !mat.color) return;
+  if (!mat.userData.__base) mat.userData.__base = mat.color.clone();
+  const h = {}; mat.userData.__base.getHSL(h);
+  mat.color.setHSL(h.h, Math.min(1, h.s * amount), h.l);
+  if ('envMapIntensity' in mat) mat.envMapIntensity = 0.55;
+  mat.side = THREE.DoubleSide;
+}
+function eachMat(root, fn){
+  root.traverse(m => {
+    if (!m.isMesh) return;
+    if (Array.isArray(m.material)) m.material.forEach(fn); else fn(m.material);
+  });
+}
+
+CHARS.forEach(name => {
+  loader.load('assets/characters/' + name + '.glb', (gltf) => {
+    const obj  = gltf.scene;
+    const box  = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const mid  = box.getCenter(new THREE.Vector3());
+    obj.traverse(m => { if (m.isMesh) m.frustumCulled = false; });
+    protos[name] = { obj, unit: 4.15 / Math.max(size.x, size.y, size.z), mid };
+    ready++;
+    if (ready === 1) document.body.classList.add('scene-ready');
+    if (ready === CHARS.length){ rebuildChars(); }
+  }, undefined, () => {});
+});
+
+let usedProto = {};
+function makeChar(name){
+  const proto = protos[name];
+  if (!proto) return null;
+  const inst = usedProto[name] ? proto.obj.clone(true) : proto.obj;
+  usedProto[name] = true;
+  inst.position.set(-proto.mid.x, -proto.mid.y, -proto.mid.z);
+  const holder = new THREE.Group();
+  holder.add(inst);
+  holder.userData = { name, unit: proto.unit, phase: Math.random() * 6.28,
+                      bob: 0.9 + Math.random() * 0.5, kick: 0, rest: 0, baseRotY: 0 };
+  scene.add(holder);
+  return holder;
+}
+function rebuildChars(){
+  if (ready < CHARS.length) return;
+  stand.forEach(o => scene.remove(o));
+  stand.length = 0;
+  usedProto = {};
+  ST.캐릭터.목록.forEach(name => {
+    const o = makeChar(name);
+    if (o) stand.push(o);
+  });
+  if (picked >= stand.length) picked = Math.max(0, stand.length - 1);
+  applyChars();
+}
+
+function applyChars(){
+  const C  = ST.캐릭터;
+  const hw = halfHeightAt(C.깊이) * camera.aspect;
+  const n  = stand.length;
+  stand.forEach((o, i) => {
+    const p  = C.개별[i] || {};
+    const t  = n === 1 ? 0.5 : (i + 0.5) / n;
+    const x  = (-hw * 0.92 + t * hw * 1.84) * C.가로간격 + (p.가로 || 0);
+    o.position.set(x, C.세로 + (p.세로 || 0), C.깊이 + (p.깊이 || 0));
+    o.userData.rest = o.position.y;
+    o.userData.baseRotY = ((i % 2 ? 1 : -1) * 0.10) + (C.각도 + (p.회전 || 0)) * D2R;
+    o.rotation.set(0, o.userData.baseRotY, 0);
+    o.scale.setScalar(o.userData.unit * C.크기 * (p.크기 || 1));
+    eachMat(o, m => saturateMat(m, C.채도));
+  });
+}
+
+/* ══════════ 로고 ══════════ */
+const logoGroup = new THREE.Group();
+scene.add(logoGroup);
+
+const logoMat = new THREE.MeshPhysicalMaterial({
+  color: new THREE.Color(MAIN), roughness: 0.34, metalness: 0.0,
+  clearcoat: 0.55, clearcoatRoughness: 0.35, sheen: 0.4,
+  sheenColor: new THREE.Color('#bfe6d8'), envMapIntensity: 0.7,
+  transparent: true, opacity: 1
+});
+
+const ROWS = [
+  { text: 'fff',                    size: 1.00, gap: 0.14 },
+  { text: 'for family and friends', size: 0.32, gap: 0.22 },
+  { text: '×',                      size: 0.54, gap: 0.22 },
+  { text: 'run, rest, refresh',     size: 0.32, gap: 0.14 },
+  { text: 'rrr',                    size: 1.00, gap: 0.00 }
+];
+const TRACK = 0.10, SPACE = 0.34;
+let logoBaseScale = 1;
+
+loader.load('assets/bubble.glb', (gltf) => {
+  const glyph = {};
+  gltf.scene.updateMatrixWorld(true);
+  gltf.scene.traverse(o => {
+    if (!o.isMesh) return;
+    const ch = (o.name || '').trim().toLowerCase().charAt(0);
+    if (!ch || glyph[ch]) return;
+    const g = o.geometry.clone();
+    g.applyMatrix4(o.matrixWorld);
+    g.computeBoundingBox();
+    const b = g.boundingBox, sz = new THREE.Vector3(), c = new THREE.Vector3();
+    b.getSize(sz); b.getCenter(c);
+    g.translate(-c.x, -b.min.y, -c.z);
+    glyph[ch] = { geo: g, w: sz.x, h: sz.y };
+  });
+  if (!Object.keys(glyph).length) return;
+  const unitH = Math.max(...Object.values(glyph).map(v => v.h));
+
+  function buildRow(spec){
+    const row = new THREE.Group();
+    const k = spec.size / unitH;
+    let x = 0; const parts = [];
+    for (const raw of spec.text){
+      const ch = raw.toLowerCase();
+      if (ch === ' '){ x += SPACE * spec.size; continue; }
+      if (ch === ','){
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.055 * spec.size / 0.32, 18, 14), logoMat);
+        m.position.set(x + 0.05 * spec.size, -0.02, 0);
+        parts.push(m); row.add(m);
+        x += 0.16 * spec.size + TRACK * spec.size; continue;
+      }
+      if (ch === '×'){
+        for (const a of [Math.PI/4, -Math.PI/4]){
+          const bar = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.44, 8, 18), logoMat);
+          bar.rotation.z = a; bar.position.set(x + 0.32, 0.30, 0);
+          parts.push(bar); row.add(bar);
+        }
+        x += 0.68; continue;
+      }
+      const gl = glyph[ch];
+      if (!gl){ x += SPACE * spec.size; continue; }
+      const m = new THREE.Mesh(gl.geo, logoMat);
+      m.scale.setScalar(k);
+      m.position.set(x + gl.w * k / 2, 0, 0);
+      parts.push(m); row.add(m);
+      x += gl.w * k + TRACK * spec.size;
+    }
+    const w = Math.max(x - TRACK * spec.size, 0.001);
+    parts.forEach(p => { p.position.x -= w / 2; });
+    return row;
+  }
+
+  let cursor = 0;
+  const rows = ROWS.map(spec => {
+    const r = buildRow(spec);
+    logoGroup.add(r);
+    const bb = new THREE.Box3().setFromObject(r);
+    r.position.y += cursor - bb.max.y;
+    cursor -= (bb.max.y - bb.min.y) + spec.gap;
+    return r;
+  });
+  const bb = new THREE.Box3().setFromObject(logoGroup);
+  const sz = bb.getSize(new THREE.Vector3());
+  const ct = bb.getCenter(new THREE.Vector3());
+  rows.forEach(r => { r.position.x -= ct.x; r.position.y -= ct.y; });
+  logoBaseScale = (halfHeightAt(ST.로고.깊이) * 2 * 0.46) / sz.y;
+  logoGroup.userData.ready = true;
+  applyLogo();
+  buildEndLogo(logoGroup, sz);
+}, undefined, () => {});
+
+/* ── 마무리 슬라이드용 3D 로고 (오프닝과 같은 모델) ── */
+function buildEndLogo(srcGroup, size){
+  const cv = document.getElementById('endlogo');
+  if (!cv) return;
+  const r2 = new THREE.WebGLRenderer({ canvas: cv, antialias:true, alpha:true });
+  r2.setPixelRatio(Math.min(devicePixelRatio, 2));
+  r2.outputColorSpace = THREE.SRGBColorSpace;
+  r2.toneMapping = THREE.ACESFilmicToneMapping;
+  r2.toneMappingExposure = 0.9;
+
+  const sc2 = new THREE.Scene();
+  sc2.environment = scene.environment;
+  sc2.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const k2 = new THREE.DirectionalLight(0xffffff, 1.3); k2.position.set(3, 6, 8);  sc2.add(k2);
+  const f2 = new THREE.DirectionalLight(0xdfeee8, 0.5); f2.position.set(-5, -1, 5); sc2.add(f2);
+
+  const cam2 = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  const clone = srcGroup.clone(true);
+  clone.position.set(0, 0, 0);
+  clone.rotation.set(0, 0, 0);
+  clone.scale.setScalar(1);
+  sc2.add(clone);
+
+  function fit2(){
+    const w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    r2.setSize(w, h, false);
+    cam2.aspect = w / h;
+    const half = size.y / 2;
+    const dist = (half * 1.30) / Math.tan(19 * D2R);
+    cam2.position.set(0, 0, dist);
+    cam2.lookAt(0, 0, 0);
+    cam2.updateProjectionMatrix();
+  }
+  addEventListener('resize', fit2); fit2();
+  window.__endLogo = { r2, sc2, cam2, clone, fit2 };
+
+  let t2 = 0, on = false;
+  new IntersectionObserver((es) => { es.forEach(e => { on = e.isIntersecting; if (on) loop2(); }); },
+    { threshold:0.05 }).observe(cv);
+  function loop2(){
+    if (!on) return;
+    requestAnimationFrame(loop2);
+    t2 += 0.008;
+    clone.rotation.y = Math.sin(t2) * 0.16;
+    clone.rotation.x = Math.sin(t2 * 0.7 + 1) * 0.05;
+    fit2();
+    r2.render(sc2, cam2);
+  }
+  loop2();
+}
+
+function applyLogo(){
+  const L = ST.로고;
+  logoGroup.scale.setScalar(logoBaseScale * L.크기);
+  logoGroup.position.set(L.가로, L.세로, L.깊이);
+  logoMat.color.set(L.색 && L.색.trim() ? L.색 : MAIN);
+  logoMat.opacity = L.투명도;
+  logoMat.transparent = L.투명도 < 1;
+  logoMat.depthWrite = L.투명도 >= 1;
+  logoMat.needsUpdate = true;
+}
+
+/* ══════════ 포인터 ══════════ */
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2(-99, -99);
+let tiltX = 0, tiltY = 0, aimX = 0, aimY = 0;
+canvas.addEventListener('pointermove', (e) => {
+  const r = canvas.getBoundingClientRect();
+  pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  aimX = pointer.x; aimY = pointer.y;
+});
+canvas.addEventListener('pointerleave', () => { aimX = 0; aimY = 0; pointer.set(-99, -99); });
+canvas.addEventListener('pointerdown', () => {
+  raycaster.setFromCamera(pointer, camera);
+  const hit = raycaster.intersectObjects(stand, true);
+  if (!hit.length) return;
+  let o = hit[0].object;
+  while (o.parent && stand.indexOf(o) === -1) o = o.parent;
+  const i = stand.indexOf(o);
+  if (i === -1) return;
+  if (document.body.classList.contains('tuning')){ selectChar(i); return; }
+  o.userData.kick = Math.PI * 2;
+});
+
+/* ══════════ 루프 ══════════ */
+const clock = new THREE.Clock();
+let running = true, t = 0;
+function resize(){
+  const w = hero.clientWidth, h = hero.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  if (stand.length) applyChars();
+}
+addEventListener('resize', resize); resize();
+
+function tick(){
+  if (!running) return;
+  requestAnimationFrame(tick);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  t += dt;
+  tiltX += (aimX - tiltX) * Math.min(1, dt * 3);
+  tiltY += (aimY - tiltY) * Math.min(1, dt * 3);
+
+  const sway = ST.캐릭터.흔들림;
+  for (const o of stand){
+    const u = o.userData;
+    u.phase += dt * 0.9;
+    o.position.y = u.rest + Math.sin(u.phase) * 0.10 * u.bob * sway;
+    if (u.kick > 0.001){
+      o.rotation.y += u.kick * dt * 1.6;
+      u.kick *= Math.pow(0.12, dt);
+      if (u.kick < 0.01){ u.kick = 0; o.rotation.y = u.baseRotY; }
+    } else {
+      o.rotation.y = u.baseRotY + Math.sin(u.phase * 0.55) * 0.09 * sway + tiltX * 0.10;
+    }
+    o.rotation.z = Math.sin(u.phase * 0.42 + 1.2) * 0.018 * sway;
+  }
+
+  if (logoGroup.userData.ready){
+    const L = ST.로고, w = L.흔들림;
+    logoGroup.rotation.set(
+      L.각도X * D2R + (Math.sin(t * 0.33 + 1) * 0.05 - tiltY * 0.12) * w,
+      L.각도Y * D2R + (Math.sin(t * 0.42) * 0.10 + tiltX * 0.20) * w,
+      L.각도Z * D2R
+    );
+    logoGroup.position.y = L.세로 + Math.sin(t * 0.55) * 0.06 * w;
+  }
+  renderer.render(scene, camera);
+}
+tick();
+
+new IntersectionObserver((es) => {
+  es.forEach(e => {
+    if (e.isIntersecting){ if (!running){ running = true; clock.getDelta(); tick(); } }
+    else running = false;
+  });
+}, { threshold:0.05 }).observe(hero);
+
+/* ══════════ 조정 패널 (G) ══════════ */
+let picked = 0;
+const panel = document.createElement('div');
+panel.id = 'tunepanel';
+document.body.appendChild(panel);
+
+const FIELDS = {
+  로고: [
+    ['크기',   0.3,  2.5,  0.01], ['가로',  -8, 8, 0.05], ['세로',  -5, 5, 0.05],
+    ['깊이',  -6,    9,    0.05], ['각도X', -90, 90, 1],  ['각도Y', -90, 90, 1],
+    ['각도Z', -45,   45,   1],    ['투명도', 0.05, 1, 0.01], ['흔들림', 0, 2, 0.05]
+  ],
+  캐릭터: [
+    ['크기',     0.3, 2.5, 0.01], ['가로간격', 0.3, 2.0, 0.01],
+    ['세로',    -5,   4,   0.05], ['깊이',    -9,   3,   0.05],
+    ['채도',     0.5, 3,   0.05], ['각도',   -60,  60,   1],
+    ['흔들림',   0,   2,   0.05]
+  ],
+  개별: [
+    ['가로', -8, 8, 0.05], ['세로', -4, 4, 0.05], ['깊이', -6, 6, 0.05],
+    ['회전', -180, 180, 1], ['크기', 0.3, 2.5, 0.01]
+  ]
+};
+
+function row(label, min, max, step, get, set){
+  const wrap = document.createElement('label');
+  wrap.className = 'tp-row';
+  wrap.innerHTML = '<span class="tp-k">' + label + '</span>';
+  const inp = document.createElement('input');
+  inp.type = 'range'; inp.min = min; inp.max = max; inp.step = step; inp.value = get();
+  const num = document.createElement('input');
+  num.type = 'number'; num.className = 'tp-num'; num.step = step; num.value = get();
+  function push(v){
+    v = Math.max(min, Math.min(max, parseFloat(v)));
+    if (isNaN(v)) return;
+    inp.value = v; num.value = Math.round(v * 100) / 100;
+    set(v); saveTune();
+  }
+  inp.oninput = () => push(inp.value);
+  num.oninput = () => push(num.value);
+  wrap.append(inp, num);
+  return wrap;
+}
+
+function buildPanel(){
+  panel.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'tp-head';
+  head.innerHTML = '<b>오프닝 조정</b><span>G 키로 닫기</span>';
+  panel.appendChild(head);
+
+  /* ── 캐릭터 목록 ── */
+  const gList = document.createElement('div'); gList.className = 'tp-grp'; gList.id = 'tp-list';
+  panel.appendChild(gList);
+  buildList();
+
+  /* ── 로고 ── */
+  const gLogo = document.createElement('div'); gLogo.className = 'tp-grp';
+  gLogo.innerHTML = '<h4>로고</h4>';
+  FIELDS.로고.forEach(([k, mn, mx, st]) => {
+    gLogo.appendChild(row(k, mn, mx, st, () => ST.로고[k], v => { ST.로고[k] = v; applyLogo(); }));
+  });
+  const col = document.createElement('label');
+  col.className = 'tp-row';
+  col.innerHTML = '<span class="tp-k">색</span>';
+  const ci = document.createElement('input');
+  ci.type = 'color'; ci.value = ST.로고.색 && ST.로고.색.trim() ? ST.로고.색 : MAIN;
+  ci.oninput = () => { ST.로고.색 = ci.value; applyLogo(); saveTune(); };
+  const cr = document.createElement('button');
+  cr.className = 'tp-mini'; cr.textContent = '메인색';
+  cr.onclick = () => { ST.로고.색 = ''; ci.value = MAIN; applyLogo(); saveTune(); };
+  col.append(ci, cr);
+  gLogo.appendChild(col);
+  panel.appendChild(gLogo);
+
+  /* ── 캐릭터 전체 ── */
+  const gCh = document.createElement('div'); gCh.className = 'tp-grp';
+  gCh.innerHTML = '<h4>캐릭터 — 전체</h4>';
+  FIELDS.캐릭터.forEach(([k, mn, mx, st]) => {
+    gCh.appendChild(row(k, mn, mx, st, () => ST.캐릭터[k], v => { ST.캐릭터[k] = v; applyChars(); }));
+  });
+  panel.appendChild(gCh);
+
+  /* ── 캐릭터 하나씩 ── */
+  const gOne = document.createElement('div'); gOne.className = 'tp-grp'; gOne.id = 'tp-one';
+  panel.appendChild(gOne);
+  buildPicker();
+
+  const foot = document.createElement('div');
+  foot.className = 'tp-foot';
+  const bSave = document.createElement('button'); bSave.className = 'tp-btn go'; bSave.textContent = '저장';
+  bSave.onclick = () => saveSettings(bSave);
+  const bReset = document.createElement('button'); bReset.className = 'tp-btn'; bReset.textContent = '되돌리기';
+  bReset.onclick = () => {
+    if (!confirm('오프닝 배치를 처음 상태로 되돌립니다.')) return;
+    localStorage.removeItem(TUNE_KEY);
+    ST = merge(DEF, S);
+    if (!Array.isArray(ST.캐릭터.목록) || !ST.캐릭터.목록.length) ST.캐릭터.목록 = DEF.캐릭터.목록.slice();
+    picked = 0;
+    rebuildChars(); applyLogo(); buildPanel();
+  };
+  foot.append(bSave, bReset);
+  panel.appendChild(foot);
+}
+
+function buildList(){
+  const box = document.getElementById('tp-list');
+  if (!box) return;
+  const L = ST.캐릭터.목록;
+  box.innerHTML = '<h4>캐릭터 — 넣기 / 빼기</h4>';
+
+  L.forEach((name, i) => {
+    const r = document.createElement('div');
+    r.className = 'tp-item' + (i === picked ? ' on' : '');
+    const nm = document.createElement('button');
+    nm.className = 'tp-name';
+    nm.textContent = (i + 1) + '. ' + (LABEL[name] || name);
+    nm.onclick = () => selectChar(i);
+    const bL = document.createElement('button'); bL.className = 'tp-ic'; bL.textContent = '◀'; bL.title = '왼쪽으로';
+    bL.onclick = () => move(i, -1);
+    const bR = document.createElement('button'); bR.className = 'tp-ic'; bR.textContent = '▶'; bR.title = '오른쪽으로';
+    bR.onclick = () => move(i, 1);
+    const bX = document.createElement('button'); bX.className = 'tp-ic del'; bX.textContent = '✕'; bX.title = '빼기';
+    bX.onclick = () => removeAt(i);
+    r.append(nm, bL, bR, bX);
+    box.appendChild(r);
+  });
+
+  const add = document.createElement('div');
+  add.className = 'tp-add';
+  add.innerHTML = '<span>추가</span>';
+  CHARS.forEach(name => {
+    const b = document.createElement('button');
+    b.textContent = '+ ' + LABEL[name];
+    b.onclick = () => addChar(name);
+    add.appendChild(b);
+  });
+  box.appendChild(add);
+
+  const hint = document.createElement('p');
+  hint.className = 'tp-hint';
+  hint.textContent = '이름을 누르거나 화면에서 캐릭터를 클릭하면 선택됩니다';
+  box.appendChild(hint);
+}
+
+function move(i, d){
+  const L = ST.캐릭터.목록, j = i + d;
+  if (j < 0 || j >= L.length) return;
+  [L[i], L[j]] = [L[j], L[i]];
+  const P = ST.캐릭터.개별;
+  const a = P[i] || null, b = P[j] || null;
+  P[i] = b; P[j] = a;
+  if (picked === i) picked = j; else if (picked === j) picked = i;
+  rebuildChars(); saveTune(); buildList(); buildPicker();
+}
+function removeAt(i){
+  const L = ST.캐릭터.목록;
+  if (L.length <= 1){ alert('최소 한 명은 남아 있어야 합니다.'); return; }
+  L.splice(i, 1);
+  ST.캐릭터.개별.splice(i, 1);
+  if (picked >= L.length) picked = L.length - 1;
+  rebuildChars(); saveTune(); buildList(); buildPicker();
+}
+function addChar(name){
+  const L = ST.캐릭터.목록;
+  if (L.length >= 12){ alert('최대 12명까지입니다.'); return; }
+  L.push(name);
+  ST.캐릭터.개별.push({ 가로:0, 세로:0, 깊이:0, 회전:0, 크기:1 });
+  picked = L.length - 1;
+  rebuildChars(); saveTune(); buildList(); buildPicker();
+}
+
+function buildPicker(){
+  const box = document.getElementById('tp-one');
+  if (!box) return;
+  const name = ST.캐릭터.목록[picked];
+  box.innerHTML = '<h4>캐릭터 — ' + (picked + 1) + '번 ' + (LABEL[name] || '') + '</h4>';
+  if (!ST.캐릭터.개별[picked]) ST.캐릭터.개별[picked] = { 가로:0, 세로:0, 깊이:0, 회전:0, 크기:1 };
+  FIELDS.개별.forEach(([k, mn, mx, st]) => {
+    box.appendChild(row(k, mn, mx, st,
+      () => { const v = (ST.캐릭터.개별[picked] || {})[k]; return v == null ? (k === '크기' ? 1 : 0) : v; },
+      v => { (ST.캐릭터.개별[picked] = ST.캐릭터.개별[picked] || {})[k] = v; applyChars(); }));
+  });
+  const b = document.createElement('button');
+  b.className = 'tp-btn'; b.style.marginTop = '6px'; b.style.background = 'var(--red)';
+  b.textContent = '이 캐릭터 빼기';
+  b.onclick = () => removeAt(picked);
+  box.appendChild(b);
+}
+function selectChar(i){
+  picked = i;
+  if (!document.body.classList.contains('tuning')) return;
+  buildList(); buildPicker();
+}
+
+/* ══════════ settings.js 저장 ══════════ */
+function blocks(){
+  const C = ST.캐릭터, L = ST.로고;
+  const r = (v) => Math.round(v * 100) / 100;
+  const list = C.목록.map(n => "'" + n + "'").join(', ');
+  const one = C.목록.map((_, i) => C.개별[i]).map(p => p
+    ? `{ 가로:${r(p.가로||0)}, 세로:${r(p.세로||0)}, 깊이:${r(p.깊이||0)}, 회전:${r(p.회전||0)}, 크기:${r(p.크기??1)} }`
+    : `{ 가로:0, 세로:0, 깊이:0, 회전:0, 크기:1 }`).join(',\n      ');
+  const ch =
+`    목록: [${list}],
+    크기:     ${r(C.크기)},
+    가로간격: ${r(C.가로간격)},
+    세로:     ${r(C.세로)},
+    깊이:     ${r(C.깊이)},
+    채도:     ${r(C.채도)},
+    각도:     ${r(C.각도)},
+    흔들림:   ${r(C.흔들림)},
+    개별: [
+      ${one}
+    ],`;
+  const lg =
+`    크기:     ${r(L.크기)},
+    가로:     ${r(L.가로)},
+    세로:     ${r(L.세로)},
+    깊이:     ${r(L.깊이)},
+    각도X:    ${r(L.각도X)},
+    각도Y:    ${r(L.각도Y)},
+    각도Z:    ${r(L.각도Z)},
+    색:       '${L.색 || ''}',
+    투명도:   ${r(L.투명도)},
+    흔들림:   ${r(L.흔들림)},`;
+  return { 캐릭터: ch, 로고: lg };
+}
+
+function replaceBlock(src, keyName, body){
+  const re = new RegExp('(^[ \\t]*)(' + keyName + ')(\\s*:\\s*\\{)', 'm');
+  const m = re.exec(src);
+  if (!m) return null;
+  const open = m.index + m[0].length - 1;
+  let depth = 0, end = -1;
+  for (let k = open; k < src.length; k++){
+    const c = src[k];
+    if (c === '{') depth++;
+    else if (c === '}'){ depth--; if (depth === 0){ end = k; break; } }
+  }
+  if (end === -1) return null;
+  let after = end + 1;
+  if (src[after] === ',') after++;
+  const ind = m[1];
+  return src.slice(0, m.index) + ind + keyName + ': {\n' + body + '\n' + ind + '},' + src.slice(after);
+}
+
+function saveSettings(btn){
+  const B = blocks();
+  fetch('settings.js', { cache:'no-store' }).then(r => {
+    if (!r.ok) throw new Error('settings.js 를 읽지 못했습니다');
+    return r.text();
+  }).then(src => {
+    const out = replaceBlock(src, '캐릭터', B.캐릭터);
+    if (!out) throw new Error('settings.js 에서 캐릭터 블록을 찾지 못했습니다');
+    const out2 = replaceBlock(out, '로고', B.로고);
+    if (!out2) throw new Error('settings.js 에서 로고 블록을 찾지 못했습니다');
+    return window.__saveFile('settings.js', out2);
+  }).then(() => {
+    localStorage.removeItem(TUNE_KEY);
+    window.__flash(btn, '저장됨 ✓', true);
+  }).catch(err => {
+    const txt = '  캐릭터: {\n' + B.캐릭터 + '\n  },\n\n  로고: {\n' + B.로고 + '\n  },';
+    window.__flash(btn, '저장 실패', false);
+    if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+    alert('자동 저장이 안 됐습니다.\n(' + err.message + ')\n\n대신 설정 코드를 클립보드에 복사했습니다.\nsettings.js 를 메모장으로 열어 캐릭터/로고 블록에 붙여넣으세요.');
+  });
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'IFRAME') return;
+  if (e.key === 'g' || e.key === 'G'){
+    const on = !document.body.classList.contains('tuning');
+    document.body.classList.toggle('tuning', on);
+    if (on) buildPanel();
+  }
+});
+window.__hero = { get ST(){ return ST; }, applyChars, applyLogo, rebuildChars };
+
+</script>
+</body>
+</html>
