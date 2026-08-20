@@ -520,13 +520,15 @@ body.tuning .hero-copy{pointer-events:none}
 /* ===== 브랜드(FFF) 매장 사진 ===== */
 .storyshots{
   display:grid; gap:14px;
-  grid-template-columns:1.12fr 1.62fr 0.95fr 0.66fr;
+  grid-template-columns:1.12fr 1.62fr 0.95fr 0.72fr;
   grid-auto-rows:clamp(200px, calc(100vh - 440px), 660px);
 }
 .sshot{margin:0; position:relative; border-radius:16px; overflow:hidden;
   border:1px solid var(--line); box-shadow:var(--shadow); background:var(--soft)}
 .sshot img{width:100%; height:100%; object-fit:cover; display:block}
 .sshot.top img{object-position:center top}
+.sshot.fit img{object-fit:contain; background:#000}
+section[data-key="brand"] .lede{word-break:keep-all}
 .sshot figcaption{
   position:absolute; left:0; right:0; bottom:0; padding:38px 15px 14px; color:#fff;
   background:linear-gradient(to top, rgba(10,22,19,.92), rgba(10,22,19,.58) 48%, rgba(10,22,19,0));
@@ -1545,6 +1547,7 @@ window.__flash = function(btn, msg, ok){
     '<span class="ed-sep"></span>' +
     '<button data-t="move"  title="끌어서 위치 옮기기">✥ 이동</button>' +
     '<button data-t="dup"   title="바로 아래 복제">복제</button>' +
+    '<button data-t="wauto"  title="가로폭만 자동으로 되돌리기">↔ 가로자동</button>' +
     '<button data-t="reset" title="크기·위치·글씨크기 초기화">↺</button>' +
     '<button data-t="del"   title="삭제">삭제</button>' +
     '<span class="ed-dim"></span>';
@@ -1617,8 +1620,8 @@ window.__flash = function(btn, msg, ok){
     tool.style.left = Math.max(6, Math.min(window.innerWidth - tw - 6, r.left)) + 'px';
     tool.style.top  = Math.max(60, r.top - 32) + 'px';
     handle.style.display = 'block';
-    handle.style.left = (r.right - 7) + 'px';
-    handle.style.top  = (r.bottom - 7) + 'px';
+    handle.style.left = Math.min(window.innerWidth  - 22, r.right  - 7) + 'px';
+    handle.style.top  = Math.min(window.innerHeight - 22, Math.max(56, r.bottom - 7)) + 'px';
   }
   function select(el, lock){
     if (!el) return;
@@ -1680,6 +1683,10 @@ window.__flash = function(btn, msg, ok){
       cur.parentNode.insertBefore(c, cur.nextSibling);
       markEditable(true); autosave(); place(); return;
     }
+    if (act === 'wauto'){
+      cur.style.width = ''; cur.style.maxWidth = ''; cur.style.minWidth = '';
+      autosave(); place(); return;
+    }
     if (act === 'reset'){
       cur.style.fontSize = ''; cur.style.width = ''; cur.style.height = ''; cur.style.minHeight = '';
       cur.style.removeProperty('--fs-k');
@@ -1738,7 +1745,8 @@ window.__flash = function(btn, msg, ok){
     });
     handle.addEventListener('pointermove', function(e){
       if (!target) return;
-      var w = Math.max(40, snapv(w0 + e.clientX - sx, e));
+      var lim = target.parentElement ? target.parentElement.clientWidth : 1e5;
+      var w = Math.max(40, Math.min(lim, snapv(w0 + e.clientX - sx, e)));
       var h = Math.max(24, snapv(h0 + e.clientY - sy, e));
       target.style.width = w + 'px';
       /* height 를 고정하면 글씨가 늘었을 때 박스를 넘쳐 겹친다 → 최소높이로 */
