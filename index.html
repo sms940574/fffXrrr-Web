@@ -641,20 +641,36 @@ body.editing .demo-tools{ display:none }
 @media(max-width:1080px){ .pipe{grid-template-columns:repeat(2,minmax(0,1fr))} }
 
 /* ===== Face Puppet ===== */
-.fpchars{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-top:14px}
-.fpchar{margin:0; display:flex; flex-direction:column; overflow:hidden;
-  border:1px solid var(--line); border-radius:13px; background:var(--card);
-  box-shadow:var(--shadow); position:relative}
-.fpchar .fimg{flex:0 0 auto; overflow:hidden; background:#F5F4EF;
-  width:100%; aspect-ratio:0.92; height:auto}
-.fpchar .fimg img{width:100%; height:100%; object-fit:contain; display:block}
-.fpchar figcaption{flex:0 0 auto; padding:9px 11px 12px}
-.fpchar .pt{display:block; font-family:var(--font-title); font-weight:700; color:var(--ink);
-  font-size:calc(18.5px * var(--title-scale) * var(--fs-k, 1)); letter-spacing:-.01em}
-.fpchar .pe{display:block; font-family:var(--mono); color:var(--main-700);
-  font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); margin:1px 0 5px}
-.fpchar .pd{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1));
-  color:var(--dim); line-height:1.45; word-break:keep-all}
+.fpchars{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-top:12px; align-items:stretch}
+.fpcol{
+  margin:0; display:flex; flex-direction:column; overflow:hidden;
+  border:1px solid var(--line); border-radius:14px; background:var(--card);
+  box-shadow:var(--shadow);
+}
+.fpcol.cy{background:var(--main-050); border-color:var(--main-200)}
+.fpcol.cy .pt{color:var(--main-700)}
+.fpcol.accent{background:var(--red-100); border-color:var(--red-200)}
+.fpcol.accent .pt{color:var(--red)}
+.fpcol .fpbody{flex:1 1 auto; padding:14px 17px 15px}
+.fpcol .pt{
+  display:block; margin:10px 0 7px; font-family:var(--font-title); font-weight:700; color:var(--ink);
+  font-size:calc(21px * var(--title-scale) * var(--fs-k, 1) * .9); letter-spacing:-.01em;
+}
+.fpcol .pd{
+  display:block; font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1));
+  color:var(--dim); line-height:1.55;
+}
+.fpcol .fimg{
+  flex:0 0 auto; position:relative; width:100%;
+  aspect-ratio:0.92; background:#F5F4EF; border-bottom:1px solid var(--line);
+}
+.fpcol .fimg img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block}
+.fpcol .pe{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:10px;
+  padding:5px 16px; border-radius:999px; color:#fff; background:rgba(10,22,19,.74);
+  font-family:var(--font-title); font-weight:700; backdrop-filter:blur(4px);
+  font-size:calc(17px * var(--title-scale) * var(--fs-k, 1));
+}
 .fixrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px}
 .fix{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); position:relative}
 .fix .fn{font-family:var(--mono); font-weight:700; color:var(--red); font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.04em}
@@ -1384,49 +1400,38 @@ body.editing .demo-tools{ display:none }
     <h2 class="rv">웹캠 하나로 <em>캐릭터가 나를 따라 합니다</em></h2>
     <p class="lede rv" style="margin-bottom:8px">앞서 보여드린 페이스 트래킹 데모의 구현 내용입니다. 설치 없이 <strong>링크 접속만으로</strong> 동작합니다.</p>
     <div class="tags rv" style="margin-bottom:12px"><span class="stephint">⎵ Space — 캐릭터 한 명씩 크게 보기</span></div>
-    <div class="grid g4 stagger" style="gap:12px">
-      <style>section[data-key="fpfeature"] .card{padding:14px 16px} section[data-key="fpfeature"] .fpchars{margin-top:11px}</style>
-      <div class="card cy">
-        <span class="tag c">Expression</span>
-        <h3 style="margin:11px 0 7px">실시간 표정 미러링</h3>
-        <p class="small">블렌드셰이프 <b>모프 타겟 42개</b>를 실시간 반영합니다. 캐릭터마다 수치를 따로 조정해 표정이 어색하지 않게 맞췄습니다.</p>
-      </div>
-      <div class="card">
-        <span class="tag">Head</span>
-        <h3 style="margin:11px 0 7px">머리 방향 추적</h3>
-        <p class="small">고개를 돌리면 캐릭터도 그대로 따라 움직입니다. 가만히 있을 때도 숨 쉬는 듯한 들썩임을 넣었습니다.</p>
-      </div>
-      <div class="card">
-        <span class="tag">Gesture</span>
-        <h3 style="margin:11px 0 7px">손동작 제스처</h3>
-        <p class="small">손이 움직이면 캐릭터 성격에 맞는 모션이 자동 재생됩니다. 전시 특성상 <b>작은 움직임도 인식</b>하도록 임계값을 낮췄습니다.</p>
-      </div>
-      <div class="card accent">
-        <span class="tag p">Character</span>
-        <h3 style="margin:11px 0 7px">4종 전환 · 자동 순환</h3>
-        <p class="small">언제든 전환할 수 있고 <b>30초마다 자동 순환</b>합니다. 화면 비율·웹캠 위치도 전시 환경에 맞춰 조정할 수 있습니다.</p>
-      </div>
-    </div>
     <div class="fpchars stagger">
-      <figure class="fpchar">
-        <div class="fimg"><img src="assets/facepuppet/bubu.jpg" alt="부부"></div>
-        <figcaption><b class="pt">부부 BuBu</b><span class="pe">전작 주인공</span>
-        <span class="pd">Don't Wake Up에서 이어받은 캐릭터. 인형을 안는 전용 모션</span></figcaption>
+      <figure class="fpcol cy">
+        <div class="fimg"><img src="assets/facepuppet/bubu.jpg" alt="부부"><span class="pe">부부</span></div>
+        <div class="fpbody">
+          <span class="tag c">Expression</span>
+          <b class="pt">실시간 표정 미러링</b>
+          <span class="pd">블렌드셰이프 <b>모프 타겟 42개</b>를 실시간 반영합니다. 캐릭터마다 수치를 따로 조정해 표정이 어색하지 않게 맞췄습니다.</span>
+        </div>
       </figure>
-      <figure class="fpchar">
-        <div class="fimg"><img src="assets/facepuppet/pipi.jpg" alt="피피"></div>
-        <figcaption><b class="pt">피피 PiPi</b><span class="pe">신규</span>
-        <span class="pd">디저트를 들어 보이는 전용 모션</span></figcaption>
+      <figure class="fpcol">
+        <div class="fimg"><img src="assets/facepuppet/pipi.jpg" alt="피피"><span class="pe">피피</span></div>
+        <div class="fpbody">
+          <span class="tag">Head</span>
+          <b class="pt">머리 방향 추적</b>
+          <span class="pd">고개를 돌리면 캐릭터도 그대로 따라 움직입니다. 가만히 있을 때도 숨 쉬는 듯한 들썩임을 넣었습니다.</span>
+        </div>
       </figure>
-      <figure class="fpchar">
-        <div class="fimg"><img src="assets/facepuppet/popo.jpg" alt="포포"></div>
-        <figcaption><b class="pt">포포 PoPo</b><span class="pe">신규</span>
-        <span class="pd">거울과 빗으로 몸단장하는 전용 모션</span></figcaption>
+      <figure class="fpcol">
+        <div class="fimg"><img src="assets/facepuppet/popo.jpg" alt="포포"><span class="pe">포포</span></div>
+        <div class="fpbody">
+          <span class="tag">Gesture</span>
+          <b class="pt">손동작 제스처</b>
+          <span class="pd">손이 움직이면 캐릭터 성격에 맞는 모션이 자동 재생됩니다. 전시 특성상 <b>작은 움직임도 인식</b>하도록 임계값을 낮췄습니다.</span>
+        </div>
       </figure>
-      <figure class="fpchar">
-        <div class="fimg"><img src="assets/facepuppet/ringring.jpg" alt="링링"></div>
-        <figcaption><b class="pt">링링 RingRing</b><span class="pe">신규</span>
-        <span class="pd">폼폼을 흔드는 응원 전용 모션</span></figcaption>
+      <figure class="fpcol accent">
+        <div class="fimg"><img src="assets/facepuppet/ringring.jpg" alt="링링"><span class="pe">링링</span></div>
+        <div class="fpbody">
+          <span class="tag p">Character</span>
+          <b class="pt">4종 전환 · 자동 순환</b>
+          <span class="pd">언제든 전환할 수 있고 <b>30초마다 자동 순환</b>합니다. 화면 비율·웹캠 위치도 전시 환경에 맞춰 조정할 수 있습니다.</span>
+        </div>
       </figure>
     </div>
   </div>
@@ -2128,7 +2133,7 @@ window.__flash = function(btn, msg, ok){
   document.body.appendChild(lb);
   var lbList = [], lbIdx = -1;
 
-  var LB_SEL = '.tonegrid .tone, .pipe .pstep, .fpchars .fpchar';
+  var LB_SEL = '.tonegrid .tone, .pipe .pstep, .fpchars .fpcol';
   function lbFigures(sec){
     return sec ? Array.prototype.slice.call(sec.querySelectorAll(LB_SEL)) : [];
   }
