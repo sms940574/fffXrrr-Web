@@ -275,7 +275,8 @@ section[data-key="art"] .lede{margin-bottom:12px}
   width:100%; height:auto; max-width:none;
   aspect-ratio:496/880; max-height:calc(100vh - 380px);
 }
-.ugc-split{display:grid; grid-template-columns:minmax(0,1fr) clamp(280px, 22%, 360px);
+.ugc-split{display:grid;
+  grid-template-columns:minmax(0,1fr) var(--side-w, clamp(280px, 22%, 360px));
   gap:clamp(16px,2vw,32px); align-items:start}
 .ugc-split > *{min-width:0}
 .ugc-side{display:flex; flex-direction:column; gap:14px}
@@ -578,6 +579,15 @@ video:-webkit-full-screen{ object-fit:contain; background:#000 }
 .filmbox:fullscreen .fsbtn, .phone:fullscreen .fsbtn, .demo:fullscreen .fsbtn{ display:none }
 .filmbox:-webkit-full-screen .fsbtn, .phone:-webkit-full-screen .fsbtn, .demo:-webkit-full-screen .fsbtn{ display:none }
 .demo .fsbtn{ z-index:4 }
+.demo-tools{
+  position:absolute; right:10px; bottom:10px; z-index:5;
+  display:flex; gap:8px; align-items:center;
+}
+.demo-tools .fsbtn{ position:static; right:auto; bottom:auto; text-decoration:none; display:inline-flex; align-items:center }
+.demo-tools .fsbtn.ghost{ background:rgba(255,255,255,.9); color:var(--ink); border:1px solid var(--line) }
+.demo-tools .fsbtn.ghost:hover{ background:var(--main); color:#fff; border-color:var(--main) }
+.demo:fullscreen .demo-tools, .demo:-webkit-full-screen .demo-tools{ display:none }
+body.editing .demo-tools{ display:none }
 </style>
 </head>
 <body>
@@ -1461,7 +1471,7 @@ window.__flash = function(btn, msg, ok){
     var out = {};
     containers.forEach(function(el, k){
       var c = el.cloneNode(true);
-      c.querySelectorAll('.ph-poster, video, .ed-badge, .fsbtn').forEach(function(n){ n.remove(); });
+      c.querySelectorAll('.ph-poster, video, .ed-badge, .fsbtn, .demo-tools').forEach(function(n){ n.remove(); });
       c.querySelectorAll('[data-demo]').forEach(function(n){
         var i = n.getAttribute('data-demo');
         if (demoOrig[i] != null) n.innerHTML = demoOrig[i];
@@ -1629,6 +1639,14 @@ window.__flash = function(btn, msg, ok){
     if (textOwner(el) === el) el.style.fontSize = px + 'px';
   }
 
+  /* 2단 구성의 오른쪽 칸 폭 되돌리기 */
+  function clearSideW(el){
+    var side = el && el.closest('.ugc-side');
+    var split = side && side.closest('.ugc-split');
+    if (split) split.style.removeProperty('--side-w');
+    if (el && el.closest && el.classList.contains('ugc-split')) el.style.removeProperty('--side-w');
+  }
+
   var SNAP = 8;                       // 스냅 간격(px). Alt 누르면 해제
   function snapv(v, e){ return (e && e.altKey) ? Math.round(v) : Math.round(v / SNAP) * SNAP; }
   function syncTool(){
@@ -1717,9 +1735,11 @@ window.__flash = function(btn, msg, ok){
     }
     if (act === 'wauto'){
       cur.style.width = ''; cur.style.maxWidth = ''; cur.style.minWidth = '';
+      clearSideW(cur);
       autosave(); place(); return;
     }
     if (act === 'reset'){
+      clearSideW(cur);
       cur.style.fontSize = ''; cur.style.width = ''; cur.style.height = ''; cur.style.minHeight = '';
       cur.style.removeProperty('--fs-k');
       cur.style.maxWidth = ''; cur.style.minWidth = '';
@@ -1777,10 +1797,22 @@ window.__flash = function(btn, msg, ok){
     });
     handle.addEventListener('pointermove', function(e){
       if (!target) return;
-      var lim = target.parentElement ? target.parentElement.clientWidth : 1e5;
-      var w = Math.max(40, Math.min(lim, snapv(w0 + e.clientX - sx, e)));
+      var w = Math.max(40, snapv(w0 + e.clientX - sx, e));
       var h = Math.max(24, snapv(h0 + e.clientY - sy, e));
-      target.style.width = w + 'px';
+      /* 좌우 2단 구성(어드벤처·UGC)에서는 박스가 아니라 '칸' 자체를 넓힌다.
+         칸 안에서만 늘리면 그리드가 막아서 하나도 안 움직이기 때문. */
+      var side  = target.closest('.ugc-side');
+      var split = side && side.closest('.ugc-split');
+      if (split){
+        var lim2 = Math.max(240, Math.round(split.clientWidth * 0.45));
+        w = Math.min(w, lim2);
+        split.style.setProperty('--side-w', w + 'px');
+        target.style.width = '';
+      } else {
+        var lim = target.parentElement ? target.parentElement.clientWidth : 1e5;
+        w = Math.min(lim, w);
+        target.style.width = w + 'px';
+      }
       /* height 를 고정하면 글씨가 늘었을 때 박스를 넘쳐 겹친다 → 최소높이로 */
       if (Math.abs(e.clientY - sy) > 6){ target.style.height = ''; target.style.minHeight = h + 'px'; }
       place();
@@ -2022,7 +2054,20 @@ window.__flash = function(btn, msg, ok){
 
   /* 실시간 데모(페이스 트래킹 · 버블)에도 전체화면 버튼 */
   function addDemoFsButton(d){
-    if (!d || d.querySelector('.fsbtn')) return;
+    if (!d || d.querySelector('.demo-tools')) return;
+    var box = document.createElement('div');
+    box.className = 'demo-tools';
+
+    var nw = document.createElement('a');
+    nw.className = 'fsbtn ghost';
+    nw.href = d.dataset.embed || '#';
+    nw.target = '_blank';
+    nw.rel = 'noopener';
+    nw.textContent = '새 창 ↗';
+    nw.title = '새 탭에서 열기 — 발표 화면과 따로 띄울 때';
+    nw.addEventListener('click', function(e){ e.stopPropagation(); });
+    box.appendChild(nw);
+
     var b = document.createElement('button');
     b.className = 'fsbtn'; b.type = 'button';
     b.textContent = '⛶ 전체화면';
@@ -2031,7 +2076,9 @@ window.__flash = function(btn, msg, ok){
       e.stopPropagation();
       goFull(d, d.querySelector('iframe'));
     });
-    d.appendChild(b);
+    box.appendChild(b);
+
+    d.appendChild(box);
   }
   window.__demoFs = addDemoFsButton;
 
