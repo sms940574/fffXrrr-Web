@@ -552,6 +552,32 @@ section[data-key="brand"] .lede{margin-bottom:16px}
 section[data-key="brand"] h2{margin-bottom:10px}
 @media(max-width:1100px){ .storyshots{grid-template-columns:repeat(2,1fr)} }
 
+
+/* ===== 전체화면 (영상 · 실시간 데모) ===== */
+.filmbox:fullscreen, .phone:fullscreen, .demo:fullscreen{
+  width:100vw; height:100vh; max-width:none; max-height:none;
+  aspect-ratio:auto; border:0; border-radius:0; box-shadow:none;
+  background:#000; display:flex; align-items:center; justify-content:center;
+}
+.filmbox:-webkit-full-screen, .phone:-webkit-full-screen, .demo:-webkit-full-screen{
+  width:100vw; height:100vh; max-width:none; max-height:none;
+  aspect-ratio:auto; border:0; border-radius:0; box-shadow:none;
+  background:#000; display:flex; align-items:center; justify-content:center;
+}
+.filmbox:fullscreen video, .phone:fullscreen video{
+  width:100%; height:100%; object-fit:contain; background:#000;
+}
+.filmbox:-webkit-full-screen video, .phone:-webkit-full-screen video{
+  width:100%; height:100%; object-fit:contain; background:#000;
+}
+video:fullscreen{ object-fit:contain; background:#000 }
+video:-webkit-full-screen{ object-fit:contain; background:#000 }
+.demo:fullscreen iframe{ width:100vw; height:100vh; border:0 }
+.demo:-webkit-full-screen iframe{ width:100vw; height:100vh; border:0 }
+.filmbox:fullscreen .ph-poster, .phone:fullscreen .ph-poster{ display:none }
+.filmbox:fullscreen .fsbtn, .phone:fullscreen .fsbtn, .demo:fullscreen .fsbtn{ display:none }
+.filmbox:-webkit-full-screen .fsbtn, .phone:-webkit-full-screen .fsbtn, .demo:-webkit-full-screen .fsbtn{ display:none }
+.demo .fsbtn{ z-index:4 }
 </style>
 </head>
 <body>
@@ -1974,13 +2000,41 @@ window.__flash = function(btn, msg, ok){
       b.addEventListener('click', function(e){
         e.stopPropagation();
         var v = mount(box, true);
-        var el = v || box;
-        var go = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen;
-        if (go) { try { go.call(el); } catch(err){} }
+        /* 비디오가 아니라 검은 무대(박스)를 전체화면으로 올린다.
+           그래야 세로 영상도 잘리지 않고 화면 한가운데 통째로 들어온다. */
+        goFull(box, v);
       });
       box.appendChild(b);
     });
   }
+  /* 전체화면 공통 — 박스를 먼저 시도하고, 막히면 안쪽 요소로 물러난다 */
+  function goFull(box, inner){
+    function req(el){
+      var go = el && (el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen);
+      if (!go) return null;
+      try { return go.call(el); } catch(err){ return null; }
+    }
+    var pr = req(box);
+    if (pr && pr.catch) pr.catch(function(){ req(inner); });
+    else if (!pr && inner) req(inner);
+  }
+  window.__goFull = goFull;
+
+  /* 실시간 데모(페이스 트래킹 · 버블)에도 전체화면 버튼 */
+  function addDemoFsButton(d){
+    if (!d || d.querySelector('.fsbtn')) return;
+    var b = document.createElement('button');
+    b.className = 'fsbtn'; b.type = 'button';
+    b.textContent = '⛶ 전체화면';
+    b.title = '전체화면으로 실행 (Esc 로 나가기)';
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      goFull(d, d.querySelector('iframe'));
+    });
+    d.appendChild(b);
+  }
+  window.__demoFs = addDemoFsButton;
+
   window.__fsButtons = addFsButtons;
   addFsButtons();
   function playIn(sec){
@@ -2054,6 +2108,7 @@ window.__flash = function(btn, msg, ok){
       f.allow = 'camera; microphone; autoplay; fullscreen; xr-spatial-tracking';
       f.setAttribute('allowfullscreen', '');
       d.innerHTML = ''; d.appendChild(f);
+      if (window.__demoFs) window.__demoFs(d);      // 실행 직후 전체화면 버튼
     }
   });
 })();
