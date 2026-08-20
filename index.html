@@ -588,6 +588,75 @@ video:-webkit-full-screen{ object-fit:contain; background:#000 }
 .demo-tools .fsbtn.ghost:hover{ background:var(--main); color:#fff; border-color:var(--main) }
 .demo:fullscreen .demo-tools, .demo:-webkit-full-screen .demo-tools{ display:none }
 body.editing .demo-tools{ display:none }
+
+/* ===== 캐릭터 모델링 파이프라인 ===== */
+.pipe{
+  display:grid; gap:13px;
+  grid-template-columns:repeat(4, minmax(0,1fr));
+  grid-auto-rows:clamp(190px, calc((100vh - 400px) / 2), 380px);
+}
+.pipe > *{min-width:0}
+.pstep{
+  margin:0; display:flex; flex-direction:column; overflow:hidden;
+  border:1px solid var(--line); border-radius:14px; background:var(--card);
+  box-shadow:var(--shadow); position:relative;
+}
+.pstep .pimg{flex:1 1 auto; min-height:0; overflow:hidden; background:#0d1512}
+.pstep .pimg img{width:100%; height:100%; object-fit:cover; display:block}
+.pstep .pbody{flex:0 0 auto; padding:9px 12px 11px}
+.pstep .pn{
+  position:absolute; top:8px; left:8px; z-index:2;
+  font-family:var(--font-title); font-weight:700; color:#fff; background:var(--red);
+  font-size:calc(15px * var(--label-scale) * var(--fs-k, 1));
+  width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.pstep .pt{
+  display:block; font-family:var(--font-title); font-weight:700; color:var(--ink);
+  font-size:calc(18.5px * var(--title-scale) * var(--fs-k, 1)); letter-spacing:-.01em;
+}
+.pstep .pe{
+  display:block; font-family:var(--mono); color:var(--main-700);
+  font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); margin:1px 0 5px;
+}
+.pstep .pd{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.45}
+.pstep.sum{background:var(--main-050); border-color:var(--main-200); justify-content:center}
+.pstep.sum .pbody{padding:16px 16px}
+@media(max-width:1080px){ .pipe{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* ===== Face Puppet ===== */
+.fpchars{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-top:14px}
+.fpchar{margin:0; border-radius:13px; overflow:hidden; border:1px solid var(--line);
+  background:#0d1512; box-shadow:var(--shadow); position:relative;
+  height:clamp(190px, calc(100vh - 640px), 470px)}
+.fpchar img{object-position:center 18%}
+.fpchar img{width:100%; height:100%; object-fit:cover; display:block}
+.fpchar figcaption{
+  position:absolute; left:0; right:0; bottom:0; padding:26px 10px 8px; color:#fff;
+  font-family:var(--font-title); font-weight:700; text-align:center;
+  font-size:calc(17px * var(--title-scale) * var(--fs-k, 1));
+  background:linear-gradient(to top, rgba(10,22,19,.9), rgba(10,22,19,0));
+}
+.fixrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px}
+.fix{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); position:relative}
+.fix .fn{font-family:var(--mono); font-weight:700; color:var(--red); font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.04em}
+.fix .fp{display:block; font-family:var(--font-title); font-weight:700; color:var(--ink); margin:5px 0 8px;
+  font-size:calc(18.5px * var(--title-scale) * var(--fs-k, 1))}
+.fix .fs{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.5}
+.fix .fs b{color:var(--main-700)}
+.bignum{position:absolute; top:14px; right:16px; font-family:var(--font-title); font-weight:700; color:var(--red);
+  font-size:calc(30px * var(--title-scale) * var(--fs-k, 1)); line-height:1}
+.bignum span{display:block; font-family:var(--font-body); font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); color:var(--dim); font-weight:400; text-align:right}
+.flowline{display:flex; flex-wrap:wrap; align-items:center; gap:9px}
+.flowline .fl{background:var(--main-050); border:1px solid var(--main-200); color:var(--main-700);
+  border-radius:999px; padding:7px 15px; font-weight:700;
+  font-size:calc(17px * var(--body-scale) * var(--fs-k, 1))}
+.flowline .ar{display:none}
+.flowline .fl:not(:last-of-type){position:relative; margin-right:22px}
+.flowline .fl:not(:last-of-type)::after{
+  content:'→'; position:absolute; right:-19px; top:50%; transform:translateY(-50%);
+  color:var(--faint); font-weight:400;
+}
+
 </style>
 </head>
 <body>
@@ -1236,6 +1305,147 @@ body.editing .demo-tools{ display:none }
     </div>
   </div>
 </section>
+
+<!-- ══════════ 캐릭터 모델링 파이프라인 ══════════ -->
+<section data-key="pipeline" data-t="캐릭터 모델링 파이프라인">
+  <div class="wrap">
+    <div class="eyebrow rv">18 — Modeling Pipeline</div>
+    <h2 class="rv">캐릭터 한 명이 <em>엔진에 서기까지</em>, 7단계</h2>
+    <p class="lede rv">원화부터 엔진 반입까지 전 과정을 직접 수행했습니다. 4종 캐릭터 모두 같은 공정을 거쳤고, <strong>리토폴로지 단계에서 관절 가동을 미리 계산</strong>해 둔 덕분에 뒤의 리깅·애니메이션에서 되돌아온 작업이 없었습니다.</p>
+    <div class="pipe stagger">
+      <figure class="pstep"><span class="pn">1</span>
+        <div class="pimg"><img src="assets/pipeline/01-concept.jpg" alt="컨셉 아트"></div>
+        <div class="pbody"><b class="pt">컨셉 · 원화</b><span class="pe">Procreate</span>
+        <span class="pd">턴어라운드 시트(정면·측면·후면)로 3D 작업의 기준점을 먼저 고정</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">2</span>
+        <div class="pimg"><img src="assets/pipeline/02-sculpt.jpg" alt="하이폴리곤 스컬프팅"></div>
+        <div class="pbody"><b class="pt">하이폴리 스컬프팅</b><span class="pe">ZBrush · Blender</span>
+        <span class="pd">전체 비율과 실루엣을 먼저 잡고 주름·재봉선까지 정밀 스컬핑</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">3</span>
+        <div class="pimg"><img src="assets/pipeline/03-retopo.jpg" alt="리토폴로지 및 UV 언랩"></div>
+        <div class="pbody"><b class="pt">리토폴로지 · UV</b><span class="pe">Blender · ZBrush</span>
+        <span class="pd">관절 가동을 고려한 쿼드 위주 엣지 흐름, 이어서 UV 전개</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">4</span>
+        <div class="pimg"><img src="assets/pipeline/04-texture.jpg" alt="베이킹 및 텍스처링"></div>
+        <div class="pbody"><b class="pt">베이킹 · 텍스처링</b><span class="pe">Substance · Photoshop</span>
+        <span class="pd">노멀·AO 베이크 후 <b>핸드 페인티드</b>로 빛과 재질을 직접 그림</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">5</span>
+        <div class="pimg"><img src="assets/pipeline/05-rig.jpg" alt="리깅 및 웨이트 페인팅"></div>
+        <div class="pbody"><b class="pt">리깅 · 웨이트</b><span class="pe">Blender</span>
+        <span class="pd">스켈레톤을 심고 웨이트 페인팅으로 변형 범위 설정, IK/FK 구축</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">6</span>
+        <div class="pimg"><img src="assets/pipeline/06-anim.jpg" alt="애니메이션 및 포징"></div>
+        <div class="pbody"><b class="pt">애니메이션 · 포징</b><span class="pe">Blender</span>
+        <span class="pd">걷기·대기 키프레임과 셰이프키 기반 페이셜·입모양</span></div>
+      </figure>
+      <figure class="pstep"><span class="pn">7</span>
+        <div class="pimg"><img src="assets/pipeline/07-engine.jpg" alt="엔진 반입" style="object-position:center 22%"></div>
+        <div class="pbody"><b class="pt">엔진 반입</b><span class="pe">Unity · FBX / glTF</span>
+        <span class="pd">셰이더·라이팅 세팅까지 마치고 실제 플레이 화면에 배치</span></div>
+      </figure>
+      <figure class="pstep sum">
+        <div class="pbody">
+          <span class="tag c">Result</span>
+          <b class="pt" style="margin-top:10px">4종 전부 휴머노이드</b>
+          <span class="pd">같은 공정을 지켰기 때문에 4종이 <b>애니메이션 클립을 공유</b>합니다. 캐릭터가 늘어도 애니메이션을 다시 만들 필요가 없는 구조입니다.</span>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ Face Puppet 기능 ══════════ -->
+<section data-key="fpfeature" data-t="Face Puppet — 실시간 인식">
+  <div class="wrap">
+    <div class="eyebrow rv">19 — Face Puppet · Feature</div>
+    <h2 class="rv">웹캠 하나로 <em>캐릭터가 나를 따라 합니다</em></h2>
+    <p class="lede rv">앞서 보여드린 페이스 트래킹 데모의 구현 내용입니다. 설치 없이 <strong>링크 접속만으로</strong> 동작하며, 전시장에서 방문객이 바로 쓸 수 있도록 만들었습니다.</p>
+    <div class="grid g4 stagger" style="gap:13px">
+      <div class="card cy">
+        <span class="tag c">Expression</span>
+        <h3 style="margin:11px 0 7px">실시간 표정 미러링</h3>
+        <p class="small">블렌드셰이프 <b>모프 타겟 42개</b>를 실시간 반영합니다. 캐릭터마다 수치를 따로 조정해 표정이 어색하지 않게 맞췄습니다.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Head</span>
+        <h3 style="margin:11px 0 7px">머리 방향 추적</h3>
+        <p class="small">고개를 돌리면 캐릭터도 그대로 따라 움직입니다. 가만히 있을 때도 숨 쉬는 듯한 들썩임을 넣었습니다.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Gesture</span>
+        <h3 style="margin:11px 0 7px">손동작 제스처</h3>
+        <p class="small">손이 움직이면 캐릭터 성격에 맞는 모션이 자동 재생됩니다. 전시 특성상 <b>작은 움직임도 인식</b>하도록 임계값을 낮췄습니다.</p>
+      </div>
+      <div class="card accent">
+        <span class="tag p">Character</span>
+        <h3 style="margin:11px 0 7px">4종 전환 · 자동 순환</h3>
+        <p class="small">언제든 전환할 수 있고 <b>30초마다 자동 순환</b>합니다. 커스텀 GLB를 넣으면 다른 캐릭터도 그대로 동작합니다.</p>
+      </div>
+    </div>
+    <div class="fpchars stagger">
+      <figure class="fpchar"><img src="assets/facepuppet/bubu.jpg" alt="부부"><figcaption>부부</figcaption></figure>
+      <figure class="fpchar"><img src="assets/facepuppet/pipi.jpg" alt="피피"><figcaption>피피</figcaption></figure>
+      <figure class="fpchar"><img src="assets/facepuppet/popo.jpg" alt="포포"><figcaption>포포</figcaption></figure>
+      <figure class="fpchar"><img src="assets/facepuppet/ringring.jpg" alt="링링"><figcaption>링링</figcaption></figure>
+    </div>
+    <p class="tiny rv" style="margin-top:11px">손 뼈대를 웹캠 화면 위에 겹쳐 보여주고, 화면 비율·전체화면·웹캠 위치를 전시 환경에 맞춰 조정할 수 있습니다.</p>
+  </div>
+</section>
+
+<!-- ══════════ Face Puppet 기술 · 최적화 ══════════ -->
+<section data-key="fptech" data-t="Face Puppet — 기술 · 최적화">
+  <div class="wrap">
+    <div class="eyebrow rv">20 — Face Puppet · Tech</div>
+    <h2 class="rv">전시장에서 <em>버벅이면 안 되니까</em></h2>
+    <p class="lede rv">방문객이 기다리지 않고 바로 쓸 수 있어야 했습니다. 로딩과 전환 지연을 실제로 측정해서 세 가지를 잡았습니다.</p>
+    <div class="grid g2" style="gap:20px; align-items:start; margin-bottom:16px">
+      <div class="card">
+        <h3 style="margin-bottom:12px">기술 스택</h3>
+        <div class="tags" style="margin-bottom:12px">
+          <span class="tag c">three.js</span><span class="tag c">GLTF · Draco</span>
+          <span class="tag c">MediaPipe FaceLandmarker</span><span class="tag c">HandLandmarker</span>
+          <span class="tag a">GitHub Pages</span>
+        </div>
+        <p class="small">브라우저에서 <b>three.js</b>로 렌더링하고, 얼굴·손 인식은 구글 <b>MediaPipe</b>를 씁니다. 서버 없이 GitHub Pages에 올려 <b>링크 하나로 공유</b>합니다.</p>
+      </div>
+      <div class="card cy">
+        <h3 style="margin-bottom:12px">구현 흐름</h3>
+        <div class="flowline">
+          <span class="fl">① 웹캠 프레임</span><span class="ar">→</span>
+          <span class="fl">② 랜드마크 추출</span><span class="ar">→</span>
+          <span class="fl">③ 블렌드셰이프 · 각도 계산</span><span class="ar">→</span>
+          <span class="fl">④ 본 · 모프 반영</span>
+        </div>
+        <div class="hr" style="margin:14px 0"></div>
+        <p class="small">매 프레임 이 네 단계가 돌아갑니다. ②는 MediaPipe, ④는 three.js가 맡습니다.</p>
+      </div>
+    </div>
+    <div class="fixrow stagger">
+      <div class="fix">
+        <div class="bignum">40%↓<span>용량 절감</span></div>
+        <span class="fn">ISSUE 01</span>
+        <b class="fp">초기 로딩이 무거움</b>
+        <span class="fs"><b>Draco 압축</b>을 적용하고 첫 캐릭터만 우선 로드, 나머지는 백그라운드에서 순차 로드</span>
+      </div>
+      <div class="fix">
+        <span class="fn">ISSUE 02</span>
+        <b class="fp">전환할 때 버벅임</b>
+        <span class="fs">본 매핑 정보를 <b>캐싱</b>하고 GPU 셰이더·버퍼를 백그라운드에서 <b>예열(Prewarming)</b>해 전환 지연 제거</span>
+      </div>
+      <div class="fix">
+        <span class="fn">ISSUE 03</span>
+        <b class="fp">애니메이션 중 표정 어긋남</b>
+        <span class="fs">실시간 트래킹과 애니메이션 클립이 <b>머리 본을 동시에 제어</b>하며 생긴 충돌 — 클립에서 머리 키프레임을 제거</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 
 
 
