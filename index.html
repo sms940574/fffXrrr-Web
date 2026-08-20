@@ -642,17 +642,19 @@ body.editing .demo-tools{ display:none }
 
 /* ===== Face Puppet ===== */
 .fpchars{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; margin-top:14px}
-.fpchar{margin:0; border-radius:13px; overflow:hidden; border:1px solid var(--line);
-  background:#F5F4EF; box-shadow:var(--shadow); position:relative;
-  height:clamp(180px, calc(100vh - 700px), 450px)}
-.fpchar img{object-fit:contain}
-.fpchar img{width:100%; height:100%; object-fit:cover; display:block}
-.fpchar figcaption{
-  position:absolute; left:50%; transform:translateX(-50%); bottom:10px;
-  padding:5px 16px; border-radius:999px; color:#fff; background:rgba(10,22,19,.72);
-  font-family:var(--font-title); font-weight:700; text-align:center; backdrop-filter:blur(4px);
-  font-size:calc(17px * var(--title-scale) * var(--fs-k, 1));
-}
+.fpchar{margin:0; display:flex; flex-direction:column; overflow:hidden;
+  border:1px solid var(--line); border-radius:13px; background:var(--card);
+  box-shadow:var(--shadow); position:relative}
+.fpchar .fimg{flex:0 0 auto; overflow:hidden; background:#F5F4EF;
+  width:100%; aspect-ratio:0.92; height:auto}
+.fpchar .fimg img{width:100%; height:100%; object-fit:contain; display:block}
+.fpchar figcaption{flex:0 0 auto; padding:9px 11px 12px}
+.fpchar .pt{display:block; font-family:var(--font-title); font-weight:700; color:var(--ink);
+  font-size:calc(18.5px * var(--title-scale) * var(--fs-k, 1)); letter-spacing:-.01em}
+.fpchar .pe{display:block; font-family:var(--mono); color:var(--main-700);
+  font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); margin:1px 0 5px}
+.fpchar .pd{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1));
+  color:var(--dim); line-height:1.45; word-break:keep-all}
 .fixrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px}
 .fix{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow); position:relative}
 .fix .fn{font-family:var(--mono); font-weight:700; color:var(--red); font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); letter-spacing:.04em}
@@ -1380,9 +1382,10 @@ body.editing .demo-tools{ display:none }
   <div class="wrap">
     <div class="eyebrow rv">19 — Face Puppet · Feature</div>
     <h2 class="rv">웹캠 하나로 <em>캐릭터가 나를 따라 합니다</em></h2>
-    <p class="lede rv" style="margin-bottom:10px">앞서 보여드린 페이스 트래킹 데모의 구현 내용입니다. 설치 없이 <strong>링크 접속만으로</strong> 동작하며, 전시장에서 방문객이 바로 쓸 수 있도록 만들었습니다.</p>
+    <p class="lede rv" style="margin-bottom:8px">앞서 보여드린 페이스 트래킹 데모의 구현 내용입니다. 설치 없이 <strong>링크 접속만으로</strong> 동작합니다.</p>
     <div class="tags rv" style="margin-bottom:12px"><span class="stephint">⎵ Space — 캐릭터 한 명씩 크게 보기</span></div>
-    <div class="grid g4 stagger" style="gap:13px">
+    <div class="grid g4 stagger" style="gap:12px">
+      <style>section[data-key="fpfeature"] .card{padding:14px 16px} section[data-key="fpfeature"] .fpchars{margin-top:11px}</style>
       <div class="card cy">
         <span class="tag c">Expression</span>
         <h3 style="margin:11px 0 7px">실시간 표정 미러링</h3>
@@ -1401,16 +1404,31 @@ body.editing .demo-tools{ display:none }
       <div class="card accent">
         <span class="tag p">Character</span>
         <h3 style="margin:11px 0 7px">4종 전환 · 자동 순환</h3>
-        <p class="small">언제든 전환할 수 있고 <b>30초마다 자동 순환</b>합니다. 커스텀 GLB를 넣으면 다른 캐릭터도 그대로 동작합니다.</p>
+        <p class="small">언제든 전환할 수 있고 <b>30초마다 자동 순환</b>합니다. 화면 비율·웹캠 위치도 전시 환경에 맞춰 조정할 수 있습니다.</p>
       </div>
     </div>
     <div class="fpchars stagger">
-      <figure class="fpchar"><img src="assets/facepuppet/bubu.jpg" alt="부부"><figcaption>부부</figcaption></figure>
-      <figure class="fpchar"><img src="assets/facepuppet/pipi.jpg" alt="피피"><figcaption>피피</figcaption></figure>
-      <figure class="fpchar"><img src="assets/facepuppet/popo.jpg" alt="포포"><figcaption>포포</figcaption></figure>
-      <figure class="fpchar"><img src="assets/facepuppet/ringring.jpg" alt="링링"><figcaption>링링</figcaption></figure>
+      <figure class="fpchar">
+        <div class="fimg"><img src="assets/facepuppet/bubu.jpg" alt="부부"></div>
+        <figcaption><b class="pt">부부 BuBu</b><span class="pe">전작 주인공</span>
+        <span class="pd">Don't Wake Up에서 이어받은 캐릭터. 인형을 안는 전용 모션</span></figcaption>
+      </figure>
+      <figure class="fpchar">
+        <div class="fimg"><img src="assets/facepuppet/pipi.jpg" alt="피피"></div>
+        <figcaption><b class="pt">피피 PiPi</b><span class="pe">신규</span>
+        <span class="pd">디저트를 들어 보이는 전용 모션</span></figcaption>
+      </figure>
+      <figure class="fpchar">
+        <div class="fimg"><img src="assets/facepuppet/popo.jpg" alt="포포"></div>
+        <figcaption><b class="pt">포포 PoPo</b><span class="pe">신규</span>
+        <span class="pd">거울과 빗으로 몸단장하는 전용 모션</span></figcaption>
+      </figure>
+      <figure class="fpchar">
+        <div class="fimg"><img src="assets/facepuppet/ringring.jpg" alt="링링"></div>
+        <figcaption><b class="pt">링링 RingRing</b><span class="pe">신규</span>
+        <span class="pd">폼폼을 흔드는 응원 전용 모션</span></figcaption>
+      </figure>
     </div>
-    <p class="tiny rv" style="margin-top:11px">손 뼈대를 웹캠 화면 위에 겹쳐 보여주고, 화면 비율·전체화면·웹캠 위치를 전시 환경에 맞춰 조정할 수 있습니다.</p>
   </div>
 </section>
 
