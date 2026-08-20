@@ -269,9 +269,15 @@ section[data-key="art"] .lede{margin-bottom:12px}
 }
 @media(max-width:900px){ .tonegrid{grid-template-columns:repeat(2,1fr)} }
 
-.shotgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start}
-.shotgrid .phone, .shotgrid .charcard{height:clamp(200px, calc(100vh - 330px), 780px)}
-.ugc-split{display:grid; grid-template-columns:2.05fr 1fr; gap:clamp(16px,2vw,32px); align-items:start}
+.shotgrid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; align-items:start}
+.shotgrid > *{min-width:0}
+.shotgrid .phone, .shotgrid .charcard{
+  width:100%; height:auto; max-width:none;
+  aspect-ratio:496/880; max-height:calc(100vh - 380px);
+}
+.ugc-split{display:grid; grid-template-columns:minmax(0,1fr) clamp(280px, 22%, 360px);
+  gap:clamp(16px,2vw,32px); align-items:start}
+.ugc-split > *{min-width:0}
 .ugc-side{display:flex; flex-direction:column; gap:14px}
 @media(max-width:1000px){ .ugc-split{grid-template-columns:1fr} }
 @media(max-width:900px){ .shotgrid{grid-template-columns:1fr} }
