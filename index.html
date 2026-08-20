@@ -150,7 +150,7 @@ p{line-height:1.7}
 .tag.p{border-color:var(--red-200); color:var(--red); background:var(--red-100)}
 .tag.c,.tag.v{border-color:var(--main-200); color:var(--main-700); background:var(--main-100)}
 .tag.a{border-color:var(--line); color:var(--ink); background:var(--soft)}
-.tags{display:flex; flex-wrap:wrap; gap:7px}
+.tags{display:flex; flex-wrap:wrap; gap:7px; width:max-content; max-width:100%}
 .num{font-family:var(--font-title); font-size:calc(clamp(32px,3.5vw,50px) * var(--title-scale) * var(--fs-k, 1)); font-weight:700; line-height:1; color:var(--main)}
 .num.r{color:var(--red)}
 
@@ -711,6 +711,7 @@ body.editing .demo-tools{ display:none }
   <button class="go" data-act="save">저장</button>
   <button data-act="undo">실행취소</button>
   <button data-act="tidy" title="글씨는 그대로 두고 크기·위치만 원래대로">레이아웃 정리</button>
+  <button data-act="fresh" title="브라우저에 남은 임시본을 버리고 저장된 파일로 다시 불러옵니다">새로 불러오기</button>
   <button data-act="reset">전체 되돌리기</button>
   <button class="warn" data-act="close">편집 끝내기</button>
 </div>
@@ -2088,6 +2089,12 @@ window.__flash = function(btn, msg, ok){
     var act = b.dataset.act;
     if (act === 'close') setEditing(false);
     if (act === 'undo') undo();
+    if (act === 'fresh'){
+      if (!confirm('브라우저에 남아 있는 임시 편집본을 버리고\n저장된 파일 기준으로 다시 불러옵니다.\n\n저장하지 않은 수정은 사라집니다. 계속할까요?')) return;
+      try { localStorage.removeItem(KEY); } catch(e){}
+      location.reload();
+      return;
+    }
     if (act === 'tidy'){
       if (!confirm('글씨 내용은 그대로 두고,\n크기·위치·이동만 원래대로 돌립니다.\n\n계속할까요?')) return;
       var n = 0;
@@ -2341,6 +2348,12 @@ window.__flash = function(btn, msg, ok){
     d.appendChild(box);
   }
   window.__demoFs = addDemoFsButton;
+
+  /* 브라우저에 남은 임시 저장본을 버리고 파일 기준으로 다시 불러오기 */
+  window.__freshLoad = function(){
+    try { localStorage.removeItem(KEY); } catch(e){}
+    location.reload();
+  };
 
   window.__fsButtons = addFsButtons;
   addFsButtons();
