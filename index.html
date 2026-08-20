@@ -612,7 +612,7 @@ body.editing .demo-tools{ display:none }
 }
 .pstep .pimg{
   flex:0 0 auto; overflow:hidden; background:#fff;
-  height:clamp(140px, calc((100vh - 780px) / 2), 300px);
+  height:clamp(105px, calc((100vh - 665px) / 2), 320px);
 }
 .pstep .pimg img{width:100%; height:100%; object-fit:contain; display:block}
 .pstep .pbody{flex:0 0 auto; padding:9px 10px 11px}
@@ -630,7 +630,7 @@ body.editing .demo-tools{ display:none }
   display:block; font-family:var(--mono); color:var(--main-700);
   font-size:calc(17px * var(--label-scale) * var(--fs-k, 1)); margin:1px 0 5px;
 }
-.pstep .pd{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.42; word-break:keep-all}
+.pstep .pd{display:none}          /* 설명은 Space 로 크게 볼 때만 (라이트박스에서 읽어감) */
 .psum{
   margin-top:12px; background:var(--main-050); border:1px solid var(--main-200);
   border-radius:14px; padding:13px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
@@ -662,7 +662,8 @@ body.editing .demo-tools{ display:none }
 }
 .fpcol .fimg{
   flex:0 0 auto; position:relative; width:100%;
-  aspect-ratio:0.92; background:#F5F4EF; border-bottom:1px solid var(--line);
+  height:clamp(135px, 29vh, 355px);
+  background:#F5F4EF; border-bottom:1px solid var(--line);
 }
 .fpcol .fimg img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; display:block}
 .fpcol .pe{
@@ -1346,7 +1347,7 @@ body.editing .demo-tools{ display:none }
   <div class="wrap">
     <div class="eyebrow rv">18 — Modeling Pipeline</div>
     <h2 class="rv">캐릭터 한 명이 <em>엔진에 서기까지</em>, 7단계</h2>
-    <p class="lede rv" style="margin-bottom:10px">원화부터 엔진 반입까지 전 과정을 직접 수행했습니다. <strong>리토폴로지에서 관절 가동을 미리 계산</strong>해 둔 덕분에 뒤의 리깅·애니메이션에서 되돌아온 작업이 없었습니다.</p>
+    <p class="lede rv" style="margin-bottom:10px">원화부터 엔진 반입까지 전 과정을 직접 수행했습니다. <strong>리토폴로지에서 관절 가동을 미리 계산</strong>해 둔 덕분에 되돌아온 작업이 없었습니다.</p>
     <div class="tags rv" style="margin-bottom:12px"><span class="stephint">⎵ Space — 한 단계씩 크게 보기</span></div>
     <div class="pipe stagger">
       <figure class="pstep"><span class="pn">1</span>
