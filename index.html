@@ -1861,6 +1861,7 @@ window.__flash = function(btn, msg, ok){
   function pad(n){ return (n < 10 ? '0' : '') + n; }
   function setActive(i){
     current = i;
+    pauseOthers(i);                     // 넘어간 슬라이드의 영상·소리는 즉시 정지
     dots.forEach(function(d, k){ d.classList.toggle('on', k === i); });
     counter.innerHTML = '<b>' + pad(i + 1) + '</b> / ' + pad(sections.length);
     secname.textContent = sections[i].dataset.t || '';
@@ -1877,7 +1878,7 @@ window.__flash = function(btn, msg, ok){
       var idx = sections.indexOf(e.target);
       if (e.isIntersecting && e.intersectionRatio > 0.5){
         e.target.classList.add('live'); setActive(idx); playIn(e.target);
-      } else if (!e.isIntersecting) pauseIn(e.target);
+      } else if (!e.isIntersecting || e.intersectionRatio < 0.5) pauseIn(e.target);
     });
   }, {threshold:[0, 0.5, 0.9]});
   sections.forEach(function(s){ io.observe(s); });
@@ -1988,7 +1989,28 @@ window.__flash = function(btn, msg, ok){
       setTimeout(function(){ mount(ph, false); }, i * 120);
     });
   }
-  function pauseIn(sec){ sec.querySelectorAll('video').forEach(function(v){ v.pause(); }); }
+  function pauseIn(sec){
+    sec.querySelectorAll('video').forEach(function(v){
+      if (document.fullscreenElement === v) return;   // 전체화면 재생 중이면 건드리지 않음
+      v.pause();
+      v.muted = true;                 // 전체화면에서 켰던 소리를 되돌린다
+      v.controls = false;
+    });
+  }
+  /* 지금 보고 있는 슬라이드가 아니면 전부 정지 — 소리가 따라다니지 않게 */
+  function pauseOthers(i){
+    if (document.fullscreenElement) return;
+    sections.forEach(function(s, k){ if (k !== i) pauseIn(s); });
+  }
+  /* 전체화면을 빠져나오면 소리를 끄고, 지금 슬라이드 밖의 영상은 정지 */
+  document.addEventListener('fullscreenchange', function(){
+    if (document.fullscreenElement) return;
+    setTimeout(function(){ pauseOthers(current); }, 0);
+  });
+  document.addEventListener('webkitfullscreenchange', function(){
+    if (document.webkitFullscreenElement) return;
+    setTimeout(function(){ pauseOthers(current); }, 0);
+  });
 
   /* ═════════ 영상 슬라이드 한 화면 맞춤 ═════════ */
   function fitVid(){
