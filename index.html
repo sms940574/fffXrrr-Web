@@ -176,9 +176,8 @@ section.live .stagger>*:nth-child(8){transition-delay:.52s}
 
 /* ===== HERO ===== */
 #hero{padding:0; overflow:hidden; background:var(--paper)}
-#bubbles{opacity:0; transition:opacity .9s ease}
 body.scene-ready #bubbles{opacity:1}
-#bubbles{position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1; cursor:crosshair; touch-action:none}
+#bubbles{position:absolute; inset:0; width:100%; height:100%; display:block; z-index:1; cursor:crosshair; touch-action:none; opacity:0; transition:opacity .9s ease}
 #heroscrim{
   position:absolute; inset:0; z-index:2; pointer-events:none;
   background:
@@ -401,7 +400,7 @@ body.lb-on #lightbox{display:flex}
   font-family:var(--mono); font-size:14px; color:var(--faint); letter-spacing:.06em;
 }
 .stephint{
-  display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+  display:inline-flex; align-items:center; gap:8px; align-self:center;
   font-family:var(--mono); font-size:15px; color:var(--main-700);
   background:var(--main-100); border:1px solid var(--main-200);
   padding:7px 14px; border-radius:999px;
@@ -471,7 +470,6 @@ body.editing #editbar{transform:translateX(-50%) translateY(0)}
 #editbar button.go{background:var(--main)}
 #editbar button.warn{background:var(--red)}
 body.editing [data-ed]{outline:1px dashed rgba(72,142,125,.45); outline-offset:3px; border-radius:3px; cursor:text}
-body.editing .ed-hot{outline:2px solid var(--red) !important; outline-offset:3px; border-radius:4px}
 #edtool{
   position:fixed; z-index:970; display:none; gap:3px; padding:3px;
   background:var(--ink); border-radius:8px; box-shadow:0 8px 22px rgba(0,0,0,.3);
@@ -544,7 +542,7 @@ body.tuning .hero-copy{pointer-events:none}
 .sshot img{width:100%; height:100%; object-fit:cover; display:block}
 .sshot.top img{object-position:center top}
 .sshot.fit img{object-fit:contain; background:#000}
-section[data-key="brand"] .lede{word-break:keep-all}
+section[data-key="brand"] .lede{word-break:keep-all; margin-bottom:16px}
 .sshot figcaption{
   position:absolute; left:0; right:0; bottom:0; padding:38px 15px 14px; color:#fff;
   background:linear-gradient(to top, rgba(10,22,19,.92), rgba(10,22,19,.58) 48%, rgba(10,22,19,0));
@@ -558,7 +556,6 @@ section[data-key="brand"] .lede{word-break:keep-all}
   font-family:var(--font-title); font-weight:700; letter-spacing:.05em;
   font-size:calc(15px * var(--label-scale) * var(--fs-k, 1)); padding:4px 11px; border-radius:999px}
 .brandnote{margin-top:14px; padding:11px 0 0; border-top:1px solid var(--line)}
-section[data-key="brand"] .lede{margin-bottom:16px}
 section[data-key="brand"] h2{margin-bottom:10px}
 @media(max-width:1100px){ .storyshots{grid-template-columns:repeat(2,1fr)} }
 
