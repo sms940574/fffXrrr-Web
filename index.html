@@ -690,6 +690,33 @@ body.editing .demo-tools{ display:none }
   color:var(--faint); font-weight:400;
 }
 
+
+/* ===== 클라이언트 기술 (실루엣 · AI 캐릭터) ===== */
+.techrow{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(16px,1.8vw,26px)}
+.techrow > *{min-width:0}
+.techcard{
+  margin:0; display:grid; grid-template-columns:minmax(0,0.66fr) minmax(0,1fr);
+  gap:clamp(12px,1.2vw,18px); align-items:start;
+  background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:16px 18px; box-shadow:var(--shadow);
+}
+.techcard.cy{background:var(--main-050); border-color:var(--main-200)}
+.techimg{
+  position:relative; width:100%; aspect-ratio:493/873; overflow:hidden;
+  border-radius:11px; border:1px solid var(--line); background:#0d1512;
+}
+.techimg img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+.techcard .pt{
+  display:block; margin:10px 0 4px; font-family:var(--font-title); font-weight:700; color:var(--ink);
+  font-size:calc(21px * var(--title-scale) * var(--fs-k, 1) * .92); letter-spacing:-.01em;
+}
+.techcard.cy .pt{color:var(--main-700)}
+.techcard .pw{display:block; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1));
+  color:var(--dim); line-height:1.5; margin-bottom:10px}
+.techcard ul.dash li{font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); line-height:1.5}
+.techcard .pd{display:none}      /* 자세한 설명은 Space 로 크게 볼 때만 */
+@media(max-width:1200px){ .techrow{grid-template-columns:1fr} }
+
 </style>
 </head>
 <body>
@@ -1485,6 +1512,47 @@ body.editing .demo-tools{ display:none }
   </div>
 </section>
 
+<!-- ══════════ 클라이언트 기술 ══════════ -->
+<section data-key="clienttech" data-t="클라이언트 기술 — 실루엣 · AI 캐릭터">
+  <div class="wrap">
+    <div class="eyebrow rv">21 — Client Tech</div>
+    <h2 class="rv">매장 맵에서 <em>레이스가 성립하게</em> 만든 두 가지</h2>
+    <p class="lede rv" style="margin-bottom:8px">진열대와 기둥이 빽빽한 매장을 트랙으로 쓰다 보니, 일반적인 러닝 게임에는 없는 문제가 두 개 생겼습니다. 클라이언트에서 이렇게 풀었습니다.</p>
+    <div class="tags rv" style="margin-bottom:12px"><span class="stephint">⎵ Space — 하나씩 크게 보기</span></div>
+    <div class="techrow stagger">
+      <figure class="techcard cy">
+        <div class="techimg"><img src="assets/client/silhouette.jpg" alt="가림 실루엣"></div>
+        <div>
+          <span class="tag c">Silhouette</span>
+          <b class="pt">벽 뒤에 있어도 내가 보인다</b>
+          <span class="pw"><b>문제</b> — 진열대에 가리면 내 캐릭터를 놓칩니다.<br><b>해결</b> — 가려진 부분만 반투명 실루엣으로 비칩니다.</span>
+          <ul class="dash">
+            <li><b>URP Overlay 카메라</b>를 런타임에 메인 카메라 자식으로 붙여 카메라 스택에 삽입</li>
+            <li>기본 패스에서 화면에 보이는 캐릭터 범위에 <b>스텐실 1</b> 기록</li>
+            <li>실루엣 패스에서 <b>depth Greater</b> 로 가려진 픽셀만 통과, <b>stencil NotEqual 1</b> 로 자기 몸에 가린 부위는 제외</li>
+          </ul>
+          <span class="pd">가려진 픽셀만 골라 단색 unlit 머티리얼로 덮어쓰기 때문에, 캐릭터를 한 번 더 그리지 않고도 실루엣이 나옵니다.</span>
+        </div>
+      </figure>
+      <figure class="techcard">
+        <div class="techimg"><img src="assets/client/airace.jpg" alt="AI 캐릭터 주행"></div>
+        <div>
+          <span class="tag">AI Racer</span>
+          <b class="pt">혼자 와도 4인 레이스</b>
+          <span class="pw"><b>문제</b> — 매장에 4명이 동시에 모여야만 경기가 됩니다.<br><b>해결</b> — 사람이 달린 주행을 녹화해 두고 상대로 세웁니다.</span>
+          <ul class="dash">
+            <li><b>녹화</b> — FixedUpdate마다 시간·위치·회전·보행·접지를 스냅샷으로 모아 골인 시 JSON 저장</li>
+            <li><b>솎기</b> — 선형보간으로 복원되는 중간 프레임을 버려 데이터를 줄임</li>
+            <li><b>재생</b> — 빈 자리를 랜덤 녹화로 채우고, FSM에 <b>Replay State</b> 를 따로 둬 물리 계산 없이 재생</li>
+          </ul>
+          <span class="pd">기록도 녹화 길이(totalTime)를 그대로 쓰기 때문에, 플레이어가 골인하는 순간 전원의 순위가 바로 확정됩니다.</span>
+        </div>
+      </figure>
+    </div>
+  </div>
+</section>
+
+
 
 
 
@@ -2138,7 +2206,7 @@ window.__flash = function(btn, msg, ok){
   document.body.appendChild(lb);
   var lbList = [], lbIdx = -1;
 
-  var LB_SEL = '.tonegrid .tone, .pipe .pstep, .fpchars .fpcol';
+  var LB_SEL = '.tonegrid .tone, .pipe .pstep, .fpchars .fpcol, .techrow .techcard';
   function lbFigures(sec){
     return sec ? Array.prototype.slice.call(sec.querySelectorAll(LB_SEL)) : [];
   }
