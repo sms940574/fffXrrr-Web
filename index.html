@@ -286,7 +286,7 @@ section[data-key="art"] .lede{margin-bottom:12px}
 .ingame-copy .lede{margin-bottom:0}
 .ingame-film{display:flex; flex-direction:column; align-items:center}
 .filmbox{
-  position:relative; width:100%; height:clamp(240px, 66vh, 780px);
+  position:relative; width:100%; height:clamp(280px, 76vh, 840px);
   border-radius:20px; overflow:hidden; background:#0d1512;
   border:1px solid var(--line); box-shadow:var(--shadow-lg);
 }
@@ -294,8 +294,8 @@ section[data-key="art"] .lede{margin-bottom:12px}
 .filmbox .ph-poster{background-size:contain; background-repeat:no-repeat}
 @media(max-width:900px){ .ingame-split{grid-template-columns:1fr} }
 
-.phcap{margin-top:10px; text-align:center; font-size:calc(17px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.4}
-.phcap b{display:block; color:var(--ink); font-weight:700; font-size:calc(18.5px * var(--body-scale) * var(--fs-k, 1)); margin-bottom:1px; font-family:var(--font-title)}
+.phcap{margin-top:12px; text-align:center; font-size:calc(19px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.4}
+.phcap b{display:block; color:var(--ink); font-weight:700; font-size:calc(21px * var(--body-scale) * var(--fs-k, 1)); margin-bottom:2px; font-family:var(--font-title)}
 
 /* ===== tabs ===== */
 .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
@@ -308,13 +308,15 @@ section[data-key="art"] .lede{margin-bottom:12px}
 
 /* ===== steps ===== */
 .steps{display:flex; flex-direction:column}
-.step{display:grid; grid-template-columns:70px 1fr 1.25fr; gap:22px; align-items:start; padding:16px 10px; border-top:1px solid var(--line2); transition:.25s; border-radius:8px}
+.step{display:grid; grid-template-columns:64px minmax(150px,220px) 1fr; gap:16px; align-items:start; padding:16px 10px; border-top:1px solid var(--line2); transition:.25s; border-radius:8px}
 .step:last-child{border-bottom:1px solid var(--line2)}
 .step:hover{background:var(--main-050)}
-.step .si{font-family:var(--font-title); font-size:calc(19px * var(--title-scale) * var(--fs-k, 1) * .95); color:var(--red); font-weight:700}
-.step .sh{font-family:var(--font-title); font-size:calc(18px * var(--title-scale) * var(--fs-k, 1) * .85); font-weight:700; color:var(--ink)}
+.step .si{font-family:var(--font-title); font-size:calc(21px * var(--title-scale) * var(--fs-k, 1)); color:var(--red); font-weight:700}
+.step .sh{font-family:var(--font-title); font-size:calc(21px * var(--title-scale) * var(--fs-k, 1)); font-weight:700; color:var(--ink); line-height:1.3}
 .step .sd{font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); color:var(--dim); line-height:1.55}
 @media(max-width:900px){.step{grid-template-columns:56px 1fr}.step .sd{grid-column:2}}
+/* 로드맵은 단계명이 길어서(예: Phase 1 · 기획 확정 & 프로토타입) 칸을 더 넓힘 */
+section[data-key="roadmap"] .step{grid-template-columns:60px minmax(190px,320px) 1fr; gap:18px}
 
 /* ===== table ===== */
 .cmp{width:100%; border-collapse:collapse; font-size:calc(17.5px * var(--body-scale) * var(--fs-k, 1)); background:var(--card); border-radius:12px; overflow:hidden; box-shadow:var(--shadow)}
