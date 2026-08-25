@@ -8,9 +8,9 @@
 <link rel="stylesheet" href="vendor/fonts/gaegu.css">
 <link rel="stylesheet" href="vendor/fonts/jua.css">
 <link rel="stylesheet" href="vendor/fonts/nanumpen.css">
-<script src="settings.js"></script>
+<script src="설정.js"></script>
 <script>
-/* settings.js 값을 CSS 변수로 적용 */
+/* 설정.js 값을 CSS 변수로 적용 */
 (function(){
   var C = window.설정 || {}, F = C.글꼴 || {}, K = C.색상 || {};
   var FACE  = { gaegu:"'Gaegu'", jua:"'Jua'", nanumpen:"'Nanum Pen Script'" };
@@ -1108,7 +1108,7 @@ body.editing .demo-tools{ display:none }
       <div class="card">
         <h3 style="font-size:calc(22px * var(--title-scale) * var(--fs-k, 1) * .92); margin-bottom:18px">게임 진행 방식</h3>
         <div class="hr" style="margin:0 0 18px; background:var(--main); height:2px"></div>
-        <svg class="flowsvg" viewBox="0 0 360 400" aria-label="게임 진행 흐름">
+        <svg class="flowsvg" viewBox="0 0 360 330" aria-label="게임 진행 흐름">
           <defs>
             <marker id="fa" markerWidth="9" markerHeight="9" refX="4.5" refY="8" orient="auto">
               <path d="M0,0 L9,0 L4.5,9 Z" fill="#488E7D"/>
@@ -1128,15 +1128,11 @@ body.editing .demo-tools{ display:none }
             <line x1="180" y1="190" x2="180" y2="204" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
 
             <rect x="80" y="216" width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
-            <text x="180" y="242" font-size="15" font-weight="700" fill="#1D2A27">아이템 · 부스터 획득</text>
+            <text x="180" y="242" font-size="15" font-weight="700" fill="#1D2A27">순위 결정 · 보상</text>
             <line x1="180" y1="260" x2="180" y2="274" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
 
-            <rect x="80" y="286" width="200" height="42" rx="9" fill="#EFF6F3" stroke="#488E7D" stroke-width="1.4"/>
-            <text x="180" y="312" font-size="15" font-weight="700" fill="#1D2A27">순위 결정 · 보상</text>
-            <line x1="180" y1="330" x2="180" y2="344" stroke="#488E7D" stroke-width="2" marker-end="url(#fa)"/>
-
-            <rect x="80" y="356" width="200" height="42" rx="9" fill="#FDF1F0" stroke="#D93025" stroke-width="1.4"/>
-            <text x="180" y="382" font-size="15" font-weight="700" fill="#1D2A27">QR → 오프라인 매장</text>
+            <rect x="80" y="286" width="200" height="42" rx="9" fill="#FDF1F0" stroke="#D93025" stroke-width="1.4"/>
+            <text x="180" y="312" font-size="15" font-weight="700" fill="#1D2A27">QR → 오프라인 매장</text>
           </g>
         </svg>
       </div>
@@ -1749,7 +1745,7 @@ window.__flash = function(btn, msg, ok){
   'use strict';
   var CFG = window.설정 || {};
 
-  /* ═════════ 오프닝 문구를 settings.js 에서 ═════════ */
+  /* ═════════ 오프닝 문구를 설정.js 에서 ═════════ */
   var O = CFG.오프닝 || {};
   function setHTML(id, v){ var e = document.getElementById(id); if (e && v != null) e.innerHTML = v; }
   setHTML('heroKicker', O.윗줄); setHTML('heroLine', O.설명); setHTML('heroHint', O.안내);
@@ -3093,7 +3089,7 @@ function selectChar(i){
   buildList(); buildPicker();
 }
 
-/* ══════════ settings.js 저장 ══════════ */
+/* ══════════ 설정.js 저장 ══════════ */
 function blocks(){
   const C = ST.캐릭터, L = ST.로고;
   const r = (v) => Math.round(v * 100) / 100;
@@ -3147,15 +3143,15 @@ function replaceBlock(src, keyName, body){
 
 function saveSettings(btn){
   const B = blocks();
-  fetch('settings.js', { cache:'no-store' }).then(r => {
-    if (!r.ok) throw new Error('settings.js 를 읽지 못했습니다');
+  fetch('설정.js', { cache:'no-store' }).then(r => {
+    if (!r.ok) throw new Error('설정.js 를 읽지 못했습니다');
     return r.text();
   }).then(src => {
     const out = replaceBlock(src, '캐릭터', B.캐릭터);
-    if (!out) throw new Error('settings.js 에서 캐릭터 블록을 찾지 못했습니다');
+    if (!out) throw new Error('설정.js 에서 캐릭터 블록을 찾지 못했습니다');
     const out2 = replaceBlock(out, '로고', B.로고);
-    if (!out2) throw new Error('settings.js 에서 로고 블록을 찾지 못했습니다');
-    return window.__saveFile('settings.js', out2);
+    if (!out2) throw new Error('설정.js 에서 로고 블록을 찾지 못했습니다');
+    return window.__saveFile('설정.js', out2);
   }).then(() => {
     localStorage.removeItem(TUNE_KEY);
     window.__flash(btn, '저장됨 ✓', true);
@@ -3163,7 +3159,7 @@ function saveSettings(btn){
     const txt = '  캐릭터: {\n' + B.캐릭터 + '\n  },\n\n  로고: {\n' + B.로고 + '\n  },';
     window.__flash(btn, '저장 실패', false);
     if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
-    alert('자동 저장이 안 됐습니다.\n(' + err.message + ')\n\n대신 설정 코드를 클립보드에 복사했습니다.\nsettings.js 를 메모장으로 열어 캐릭터/로고 블록에 붙여넣으세요.');
+    alert('자동 저장이 안 됐습니다.\n(' + err.message + ')\n\n대신 설정 코드를 클립보드에 복사했습니다.\n설정.js 를 메모장으로 열어 캐릭터/로고 블록에 붙여넣으세요.');
   });
 }
 
